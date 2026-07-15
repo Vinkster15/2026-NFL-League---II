@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matchups · 2026 DK NFL League - II</title>
+
+
+  <style>
+    :root {
+      --bg:          #0a0c0f;
+      --surface:     #111418;
+      --surface2:    #181c22;
+      --border:      #232830;
+      --border2:     #2e3540;
+      --accent:      #e8a020;
+      --accent2:     #c47010;
+      --green:       #2ecc71;
+      --red:         #e74c3c;
+      --muted:       #5a6270;
+      --text:        #d8dde6;
+      --text-dim:    #8892a0;
+      --heading:     #f0f4f8;
+      --radius:      4px;
+      --font-ui:     'Calibri', 'Candara', sans-serif;
+      --font-mono:   'Calibri', 'Candara', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--accent);
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      gap: 16px;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      color: var(--heading);
+      white-space: nowrap;
+    }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 4px; flex-wrap: nowrap; }
+    @media (max-width: 480px) {
+      .logo { font-size: 15px; }
+      nav a { font-size: 12px; padding: 6px 7px; }
+    }
+    nav a {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      transition: color .15s, background .15s;
+    }
+    nav a:hover, nav a:focus {
+      color: var(--accent);
+      background: rgba(232,160,32,.08);
+      text-decoration: none;
+    }
+    nav a.active {
+      color: var(--accent);
+      background: rgba(232,160,32,.1);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0d1117 0%, #141920 60%, #1a1000 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 16px 32px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      letter-spacing: .03em;
+      color: var(--heading);
+      line-height: 1.1;
+    }
+    .hero h1 span { color: var(--accent); }
+
+    .section { padding: 40px 16px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+      margin-bottom: 24px;
+    }
+    h2.block-heading {
+      font-size: clamp(20px, 3vw, 28px);
+      font-weight: 900;
+      color: var(--heading);
+      letter-spacing: .02em;
+      margin-bottom: 20px;
+    }
+
+    .matchups-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .matchups-controls select {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      padding: 7px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      outline: none;
+    }
+    .matchups-controls select:focus { border-color: var(--accent); }
+    .btn-refresh {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 7px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .btn-refresh:hover { background: var(--accent); color: #000; }
+
+    /* Matchups table box */
+    .matchups-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .matchups-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+    .matchups-table thead tr {
+      background: var(--surface2);
+      border-bottom: 2px solid var(--accent);
+    }
+    .matchups-table th {
+      padding: 11px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+    .matchups-table th.col-home,
+    .matchups-table th.col-away { text-align: left; }
+    .matchups-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .matchups-table tr:last-child td { border-bottom: none; }
+    .matchups-table tr:hover td { background: rgba(255,255,255,.025); }
+
+    .td-game {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      width: 60px;
+    }
+    .td-team {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    /* Desktop — all inline */
+    .td-team .record,
+    .td-team .dk-user,
+    .td-team .team-abbr {
+      display: inline;
+      line-height: 1.4;
+    }
+    .td-team .dk-user {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+      margin: 0 3px;
+    }
+    .td-team .team-abbr {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .td-score {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--heading);
+      white-space: nowrap;
+      width: 110px;
+    }
+    .td-score .vs-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .td-score .score-sep { color: var(--muted); margin: 0 4px; font-weight: 400; }
+    .td-home {
+      text-align: right;
+    }
+    .record {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    #matchups-empty {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 24px 16px;
+    }
+
+    /* ---- Expandable lineup rows ---- */
+    .matchup-row {
+      cursor: pointer;
+      user-select: none;
+    }
+    .matchup-row:hover td { background: rgba(255,255,255,.035); }
+    .chevron {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 6px;
+      transition: transform .2s ease;
+      vertical-align: middle;
+    }
+    .matchup-row.open .chevron { transform: rotate(180deg); }
+
+    .lineup-detail-row { display: none; }
+    .lineup-detail-row.open { display: table-row; }
+    .lineup-detail-row td { padding: 0; border-bottom: 2px solid var(--accent); }
+
+    .lineup-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface2);
+      border-top: 1px solid var(--border2);
+    }
+    .lineup-side {
+      padding: 14px 16px;
+    }
+    .lineup-side:first-child {
+      border-right: 1px solid var(--border2);
+    }
+    .lineup-side-header {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lineup-player {
+      display: flex;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      gap: 6px;
+    }
+    .lineup-player:last-of-type { border-bottom: none; }
+    .lp-pos {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--muted);
+      width: 34px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+    .lp-name {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lp-pts {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+      flex-shrink: 0;
+      min-width: 36px;
+      text-align: right;
+    }
+    .lp-pts.zero { color: var(--muted); }
+    .lineup-total {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border2);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--heading);
+    }
+    .lineup-total .tot-pts { color: var(--green); font-size: 13px; }
+
+    @media (max-width: 600px) {
+      .matchups-box { max-width: 100% !important; }
+      .matchups-table th { padding: 8px 6px; font-size: 10px; }
+      .matchups-table td { padding: 10px 6px; }
+      .td-score { font-size: 13px; width: 75px; }
+      /* Stack on mobile */
+      .td-team .record,
+      .td-team .dk-user,
+      .td-team .team-abbr {
+        display: block;
+        margin: 0;
+      }
+      .td-team .record    { font-size: 10px; }
+      .td-team .dk-user   { font-size: 10px; }
+      .td-team .team-abbr { font-size: 13px; }
+      /* Reorder away cell on mobile: record → dk → abbr */
+      .td-away { display: flex; flex-direction: column; }
+      .td-away .team-abbr { order: 3; }
+      .td-away .dk-user   { order: 2; }
+      .td-away .record    { order: 1; }
+      /* Stack lineup panel on mobile */
+      .lineup-panel { grid-template-columns: 1fr; }
+      .lineup-side:first-child { border-right: none; border-bottom: 1px solid var(--border2); }
+      .lp-name { font-size: 11px; }
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-left: 3px solid var(--green);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 12px 18px;
+      border-radius: var(--radius);
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .25s, transform .25s;
+      pointer-events: none;
+      max-width: 320px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 16px;
+      text-align: center;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html" style="text-decoration:none">2026 <span>NFL</span> League — II</a>
+    <nav>
+      <a href="standings.html">Standings</a>
+      <a href="matchups.html" class="active">Matchups</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Weekly <span>Matchups</span></h1>
+</section>
+
+<section class="section container" id="matchups">
+  <p class="section-title">Schedule</p>
+  <h2 class="block-heading">Weekly Matchups</h2>
+
+  <div class="matchups-controls">
+    <select id="matchups-week-filter" onchange="renderMatchups()">
+      <option value="">Loading…</option>
+    </select>
+  </div>
+
+  <div class="matchups-box" style="max-width:780px;margin:0 auto">
+    <table class="matchups-table" id="matchups-table">
+      <thead>
+        <tr>
+          <th class="col-away">Away</th>
+          <th class="col-score">Score</th>
+          <th class="col-home" style="text-align:right">Home</th>
+        </tr>
+      </thead>
+      <tbody id="matchups-tbody">
+        <tr><td colspan="5" id="matchups-empty" class="td-game" style="width:auto;text-align:left;color:var(--muted);font-size:13px">No matchups found for this week.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>2026 DK NFL League - II · <a href="index.html">Home</a></p>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const GOOGLE_SHEETS_CONFIG = {
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzV3tQ-IPYW3ljDjEMIBdF3uLhnJhyyVOMhf23vOVqvv4M1bHBiMf8uWQFw1-U5nCl_7A/exec',
+    SHEET_PUBLIC_URL: 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit',
+  };
+
+  function isLive() {
+    return GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL.indexOf('YOUR_SCRIPT_ID') === -1;
+  }
+
+  const MOCK_LEAGUE = {
+    conferences: [
+      { id: 'afc', name: 'AFC' },
+      { id: 'nfc', name: 'NFC' },
+    ],
+    teams: [
+      { id: 't01', divId: 'afc-north', name: 'Baltimore Ravens'     },
+      { id: 't02', divId: 'afc-north', name: 'Cincinnati Bengals'   },
+      { id: 't03', divId: 'afc-north', name: 'Cleveland Browns'     },
+      { id: 't04', divId: 'afc-north', name: 'Pittsburgh Steelers'  },
+      { id: 't05', divId: 'afc-south', name: 'Houston Texans'       },
+      { id: 't06', divId: 'afc-south', name: 'Indianapolis Colts'   },
+      { id: 't07', divId: 'afc-south', name: 'Jacksonville Jaguars' },
+      { id: 't08', divId: 'afc-south', name: 'Tennessee Titans'     },
+      { id: 't09', divId: 'afc-east',  name: 'Buffalo Bills'        },
+      { id: 't10', divId: 'afc-east',  name: 'Miami Dolphins'       },
+      { id: 't11', divId: 'afc-east',  name: 'New England Patriots' },
+      { id: 't12', divId: 'afc-east',  name: 'New York Jets'        },
+      { id: 't13', divId: 'afc-west',  name: 'Denver Broncos'       },
+      { id: 't14', divId: 'afc-west',  name: 'Kansas City Chiefs'   },
+      { id: 't15', divId: 'afc-west',  name: 'Las Vegas Raiders'    },
+      { id: 't16', divId: 'afc-west',  name: 'Los Angeles Chargers' },
+      { id: 't17', divId: 'nfc-north', name: 'Chicago Bears'        },
+      { id: 't18', divId: 'nfc-north', name: 'Detroit Lions'        },
+      { id: 't19', divId: 'nfc-north', name: 'Green Bay Packers'    },
+      { id: 't20', divId: 'nfc-north', name: 'Minnesota Vikings'    },
+      { id: 't21', divId: 'nfc-south', name: 'Atlanta Falcons'      },
+      { id: 't22', divId: 'nfc-south', name: 'Carolina Panthers'    },
+      { id: 't23', divId: 'nfc-south', name: 'New Orleans Saints'   },
+      { id: 't24', divId: 'nfc-south', name: 'Tampa Bay Buccaneers' },
+      { id: 't25', divId: 'nfc-east',  name: 'Dallas Cowboys'       },
+      { id: 't26', divId: 'nfc-east',  name: 'New York Giants'      },
+      { id: 't27', divId: 'nfc-east',  name: 'Philadelphia Eagles'  },
+      { id: 't28', divId: 'nfc-east',  name: 'Washington Commanders'},
+      { id: 't29', divId: 'nfc-west',  name: 'Arizona Cardinals'    },
+      { id: 't30', divId: 'nfc-west',  name: 'Los Angeles Rams'     },
+      { id: 't31', divId: 'nfc-west',  name: 'San Francisco 49ers'  },
+      { id: 't32', divId: 'nfc-west',  name: 'Seattle Seahawks'     },
+    ],
+  };
+
+  const TEAM_ABBR = {
+    'Baltimore Ravens':      'BAL',
+    'Cincinnati Bengals':    'CIN',
+    'Cleveland Browns':      'CLE',
+    'Pittsburgh Steelers':   'PIT',
+    'Houston Texans':        'HOU',
+    'Indianapolis Colts':    'IND',
+    'Jacksonville Jaguars':  'JAC',
+    'Tennessee Titans':      'TEN',
+    'Buffalo Bills':         'BUF',
+    'Miami Dolphins':        'MIA',
+    'New England Patriots':  'NE',
+    'New York Jets':         'NYJ',
+    'Denver Broncos':        'DEN',
+    'Kansas City Chiefs':    'KC',
+    'Las Vegas Raiders':     'LV',
+    'Los Angeles Chargers':  'LAC',
+    'Chicago Bears':         'CHI',
+    'Detroit Lions':         'DET',
+    'Green Bay Packers':     'GB',
+    'Minnesota Vikings':     'MIN',
+    'Atlanta Falcons':       'ATL',
+    'Carolina Panthers':     'CAR',
+    'New Orleans Saints':    'NO',
+    'Tampa Bay Buccaneers':  'TB',
+    'Dallas Cowboys':        'DAL',
+    'New York Giants':       'NYG',
+    'Philadelphia Eagles':   'PHI',
+    'Washington Commanders': 'WAS',
+    'Arizona Cardinals':     'ARI',
+    'Los Angeles Rams':      'LAR',
+    'San Francisco 49ers':   'SF',
+    'Seattle Seahawks':      'SEA',
+  };
+
+  // ── Runtime state ──────────────────────────────────────────────
+  let claimedTeams = {};
+  let standings = [];
+  window._claimUsernames = {};
+  window._matchups = [];
+  window._lineups  = {}; // { teamId: { dkUser, players:[{pos,name,pts}], totalPoints } }
+
+  function allTeamsClaimed() {
+    return Object.keys(claimedTeams).length >= MOCK_LEAGUE.teams.length;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  // ── Data loading ───────────────────────────────────────────────
+  async function loadClaims() {
+    if (!isLive()) {
+      try {
+        const raw = localStorage.getItem('gfl2_claimed');
+        claimedTeams = raw ? JSON.parse(raw) : {};
+        const rawU = localStorage.getItem('gfl2_usernames');
+        window._claimUsernames = rawU ? JSON.parse(rawU) : {};
+      } catch (e) {}
+      return;
+    }
+    try {
+      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=claims');
+      const data = await res.json();
+      if (data.success) {
+        claimedTeams           = data.claims    || {};
+        window._claimUsernames = data.usernames || {};
+      }
+    } catch (err) {
+      console.warn('loadClaims failed', err);
+    }
+  }
+
+  // Standings after Week 1 — winners get 1-0, losers get 0-1
+  const MOCK_STANDINGS = [
+    { teamId: 't01', wins: 1, losses: 0 }, // Baltimore Ravens — W
+    { teamId: 't02', wins: 0, losses: 1 }, // Cincinnati Bengals — L
+    { teamId: 't03', wins: 1, losses: 0 }, // Cleveland Browns — W
+    { teamId: 't04', wins: 0, losses: 1 }, // Pittsburgh Steelers — L
+    { teamId: 't05', wins: 1, losses: 0 }, // Houston Texans — W
+    { teamId: 't06', wins: 0, losses: 1 }, // Indianapolis Colts — L
+    { teamId: 't07', wins: 1, losses: 0 }, // Jacksonville Jaguars — W
+    { teamId: 't08', wins: 0, losses: 1 }, // Tennessee Titans — L
+    { teamId: 't09', wins: 1, losses: 0 }, // Buffalo Bills — W
+    { teamId: 't10', wins: 0, losses: 1 }, // Miami Dolphins — L
+    { teamId: 't11', wins: 1, losses: 0 }, // New England Patriots — W
+    { teamId: 't12', wins: 0, losses: 1 }, // New York Jets — L
+    { teamId: 't13', wins: 1, losses: 0 }, // Denver Broncos — W
+    { teamId: 't14', wins: 0, losses: 1 }, // Kansas City Chiefs — L
+    { teamId: 't15', wins: 1, losses: 0 }, // Las Vegas Raiders — W
+    { teamId: 't16', wins: 0, losses: 1 }, // Los Angeles Chargers — L
+    { teamId: 't17', wins: 1, losses: 0 }, // Chicago Bears — W
+    { teamId: 't18', wins: 0, losses: 1 }, // Detroit Lions — L
+    { teamId: 't19', wins: 1, losses: 0 }, // Green Bay Packers — W
+    { teamId: 't20', wins: 0, losses: 1 }, // Minnesota Vikings — L
+    { teamId: 't21', wins: 1, losses: 0 }, // Atlanta Falcons — W
+    { teamId: 't22', wins: 0, losses: 1 }, // Carolina Panthers — L
+    { teamId: 't23', wins: 1, losses: 0 }, // New Orleans Saints — W
+    { teamId: 't24', wins: 0, losses: 1 }, // Tampa Bay Buccaneers — L
+    { teamId: 't25', wins: 1, losses: 0 }, // Dallas Cowboys — W
+    { teamId: 't26', wins: 0, losses: 1 }, // New York Giants — L
+    { teamId: 't27', wins: 1, losses: 0 }, // Philadelphia Eagles — W
+    { teamId: 't28', wins: 0, losses: 1 }, // Washington Commanders — L
+    { teamId: 't29', wins: 1, losses: 0 }, // Arizona Cardinals — W
+    { teamId: 't30', wins: 0, losses: 1 }, // Los Angeles Rams — L
+    { teamId: 't31', wins: 1, losses: 0 }, // San Francisco 49ers — W
+    { teamId: 't32', wins: 0, losses: 1 }, // Seattle Seahawks — L
+  ];
+
+  async function loadStandings() {
+    if (!isLive()) return MOCK_STANDINGS;
+    try {
+      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=standings');
+      const data = await res.json();
+      return (data.success && data.standings && data.standings.length > 0) ? data.standings : MOCK_STANDINGS;
+    } catch (err) {
+      console.warn('loadStandings failed, using mock data', err);
+      return MOCK_STANDINGS;
+    }
+  }
+
+  function getRecordForTeam(teamName) {
+    const team = MOCK_LEAGUE.teams.find(t => t.name === teamName);
+    if (!team) return '';
+    const s = standings.find(x => x.teamId === team.id);
+    if (!s) return '';
+    return `(${s.wins}-${s.losses})`;
+  }
+
+  async function loadMatchups() {
+    if (!isLive()) return [];
+    try {
+      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=matchups');
+      const data = await res.json();
+      return (data.success && data.matchups) ? data.matchups : [];
+    } catch (err) {
+      console.warn('loadMatchups failed', err);
+      return [];
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────
+  function getPlayerForTeam(teamName) {
+    if (!allTeamsClaimed()) return null;
+    const team = MOCK_LEAGUE.teams.find(t => t.name === teamName);
+    if (!team) return null;
+    // Return DraftKings username — only visible once all 32 teams are claimed
+    return (window._claimUsernames && window._claimUsernames[team.id]) || null;
+  }
+
+  function populateWeekFilter(keepWeek) {
+    const weeks = [...new Set(window._matchups.map(m => Number(m.week)))].sort((a, b) => a - b);
+    const sel   = document.getElementById('matchups-week-filter');
+    sel.innerHTML = '';
+
+    if (weeks.length === 0) {
+      sel.innerHTML = '<option value="">No matchups yet</option>';
+      return;
+    }
+
+    weeks.forEach(w => {
+      const opt       = document.createElement('option');
+      opt.value       = w;
+      opt.textContent = 'Week ' + w;
+      sel.appendChild(opt);
+    });
+
+    sel.value = (keepWeek && weeks.includes(Number(keepWeek))) ? keepWeek : weeks[weeks.length - 1];
+  }
+
+  function buildLineupSideHTML(teamName, isHome) {
+    const team    = MOCK_LEAGUE.teams.find(t => t.name === teamName);
+    const teamId  = team ? team.id : null;
+    const lineup  = teamId ? window._lineups[teamId] : null;
+    const abbr    = TEAM_ABBR[teamName] || teamName;
+    const dk      = allTeamsClaimed() ? getPlayerForTeam(teamName) : null;
+
+    const headerLabel = dk
+      ? `${escHtml(dk)} · ${abbr}`
+      : abbr;
+
+    if (!lineup || !lineup.players || lineup.players.length === 0) {
+      return `<div class="lineup-side">
+        <div class="lineup-side-header">${headerLabel}</div>
+        <div style="font-size:12px;color:var(--muted);padding:8px 0">Lineup not yet available</div>
+      </div>`;
+    }
+
+    const playersHTML = lineup.players.map(p => {
+      const hasPoints = p.pts > 0;
+      return `<div class="lineup-player">
+        <span class="lp-pos">${escHtml(p.pos)}</span>
+        <span class="lp-name">${escHtml(p.name)}</span>
+        <span class="lp-pts${hasPoints ? '' : ' zero'}">${p.pts > 0 ? p.pts.toFixed(2) : '—'}</span>
+      </div>`;
+    }).join('');
+
+    const total = lineup.totalPoints || 0;
+
+    return `<div class="lineup-side">
+      <div class="lineup-side-header">${headerLabel}</div>
+      ${playersHTML}
+      <div class="lineup-total">
+        <span>Total</span>
+        <span class="tot-pts">${total > 0 ? total.toFixed(2) : '—'}</span>
+      </div>
+    </div>`;
+  }
+
+  function toggleLineup(idx) {
+    const matchRow   = document.getElementById('matchup-row-' + idx);
+    const detailRow  = document.getElementById('lineup-row-' + idx);
+    if (!matchRow || !detailRow) return;
+    const isOpen = detailRow.classList.contains('open');
+    detailRow.classList.toggle('open', !isOpen);
+    matchRow.classList.toggle('open', !isOpen);
+  }
+
+  function renderMatchups() {
+    const sel     = document.getElementById('matchups-week-filter');
+    const selWeek = Number(sel.value);
+    const tbody   = document.getElementById('matchups-tbody');
+    const week    = window._matchups.filter(m => Number(m.week) === selWeek);
+
+    tbody.innerHTML = '';
+
+    if (week.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="padding:24px 16px;color:var(--muted);font-size:13px">No matchups found for this week.</td></tr>';
+      return;
+    }
+
+    week.forEach((m, i) => {
+      const played   = m.homeScore !== null && m.awayScore !== null;
+      const homeWins = played && m.homeScore > m.awayScore;
+      const awayWins = played && m.awayScore > m.homeScore;
+
+      const homeAbbr = TEAM_ABBR[m.homeTeam] || m.homeTeam;
+      const awayAbbr = TEAM_ABBR[m.awayTeam] || m.awayTeam;
+      const homeDK   = getPlayerForTeam(m.homeTeam);
+      const awayDK   = getPlayerForTeam(m.awayTeam);
+
+      const homeRecord = getRecordForTeam(m.homeTeam);
+      const awayRecord = getRecordForTeam(m.awayTeam);
+
+      const awayLabel = `<span class="team-abbr">${awayAbbr}</span><span class="dk-user">${awayDK ? escHtml(awayDK) : ''}</span><span class="record">${awayRecord}</span>`;
+      const homeLabel = `<span class="record">${homeRecord}</span><span class="dk-user">${homeDK ? escHtml(homeDK) : ''}</span><span class="team-abbr">${homeAbbr}</span>`;
+
+      const scoreCell = played
+        ? `<span style="color:${awayWins ? 'var(--green)' : 'var(--muted)'}">${m.awayScore}</span><span class="score-sep">–</span><span style="color:${homeWins ? 'var(--green)' : 'var(--muted)'}">${m.homeScore}</span><span class="chevron">▾</span>`
+        : `<span class="vs-label">VS</span><span class="chevron">▾</span>`;
+
+      // Main matchup row
+      const tr = document.createElement('tr');
+      tr.className = 'matchup-row';
+      tr.id = 'matchup-row-' + i;
+      tr.setAttribute('onclick', 'toggleLineup(' + i + ')');
+      tr.innerHTML = `
+        <td class="td-team td-away">${awayLabel}</td>
+        <td class="td-score">${scoreCell}</td>
+        <td class="td-team td-home">${homeLabel}</td>
+      `;
+      tbody.appendChild(tr);
+
+      // Expandable lineup detail row
+      const detailTr = document.createElement('tr');
+      detailTr.className = 'lineup-detail-row';
+      detailTr.id = 'lineup-row-' + i;
+      detailTr.innerHTML = `
+        <td colspan="3">
+          <div class="lineup-panel">
+            ${buildLineupSideHTML(m.awayTeam, false)}
+            ${buildLineupSideHTML(m.homeTeam, true)}
+          </div>
+        </td>
+      `;
+      tbody.appendChild(detailTr);
+    });
+  }
+
+  async function refreshMatchups() {
+    const prevWeek = document.getElementById('matchups-week-filter').value;
+    await loadClaims();
+    standings = await loadStandings();
+    window._matchups = await loadMatchups();
+    populateWeekFilter(prevWeek);
+    renderMatchups();
+  }
+
+  // ── MOCK PREVIEW DATA (remove after testing) ──────────────────
+  // Team assignments: t01–t32 mapped to each DK username
+  const MOCK_USERNAMES = {
+    't01':'kswetnam1342', 't02':'Timtim130',       't03':'watz23',
+    't04':'mvinke',       't05':'joe974',           't06':'sgasperson',
+    't07':'HeHateMe14',   't08':'Mattraq1',         't09':'EriksRIX',
+    't10':'mikedrew237',  't11':'fadeintobolivian','t12':'HotUnderDog',
+    't13':'mystichic23',  't14':'scottr85',         't15':'sbmccarn',
+    't16':'tarheelshaggy23','t17':'Vinkster24',     't18':'paulsupple',
+    't19':'johnniefive',  't20':'droid1232',        't21':'vinkster15',
+    't22':'LSUNick413',   't23':'smittyjo5',        't24':'cmbarbee226',
+    't25':'dukedevilsbb','t26':'JottieBucs',       't27':'imrobins',
+    't28':'Jimmyjr54',    't29':'vrr325',           't30':'headsmasher1104',
+    't31':'jerall12000',  't32':'Jsize',
+  };
+  // Week 1 matchups using the actual DK scores provided
+  const MOCK_MATCHUP_DATA = [
+    { week:1, homeTeam:'Baltimore Ravens',     awayTeam:'Cincinnati Bengals',    homeScore:203.66, awayScore:177.56 },
+    { week:1, homeTeam:'Cleveland Browns',     awayTeam:'Pittsburgh Steelers',   homeScore:167.10, awayScore:161.20 },
+    { week:1, homeTeam:'Houston Texans',       awayTeam:'Indianapolis Colts',    homeScore:157.44, awayScore:153.92 },
+    { week:1, homeTeam:'Jacksonville Jaguars', awayTeam:'Tennessee Titans',      homeScore:153.12, awayScore:150.84 },
+    { week:1, homeTeam:'Buffalo Bills',        awayTeam:'Miami Dolphins',        homeScore:148.24, awayScore:147.04 },
+    { week:1, homeTeam:'New England Patriots', awayTeam:'New York Jets',         homeScore:146.56, awayScore:144.06 },
+    { week:1, homeTeam:'Denver Broncos',       awayTeam:'Kansas City Chiefs',    homeScore:142.54, awayScore:138.36 },
+    { week:1, homeTeam:'Las Vegas Raiders',    awayTeam:'Los Angeles Chargers',  homeScore:135.72, awayScore:133.40 },
+    { week:1, homeTeam:'Chicago Bears',        awayTeam:'Detroit Lions',         homeScore:132.30, awayScore:131.56 },
+    { week:1, homeTeam:'Green Bay Packers',    awayTeam:'Minnesota Vikings',     homeScore:129.38, awayScore:128.26 },
+    { week:1, homeTeam:'Atlanta Falcons',      awayTeam:'Carolina Panthers',     homeScore:124.16, awayScore:123.14 },
+    { week:1, homeTeam:'New Orleans Saints',   awayTeam:'Tampa Bay Buccaneers',  homeScore:121.32, awayScore:117.16 },
+    { week:1, homeTeam:'Dallas Cowboys',       awayTeam:'New York Giants',       homeScore:114.24, awayScore:108.94 },
+    { week:1, homeTeam:'Philadelphia Eagles',  awayTeam:'Washington Commanders', homeScore:106.26, awayScore:103.76 },
+    { week:1, homeTeam:'Arizona Cardinals',    awayTeam:'Los Angeles Rams',      homeScore:99.06,  awayScore:96.50  },
+    { week:1, homeTeam:'San Francisco 49ers',  awayTeam:'Seattle Seahawks',      homeScore:88.70,  awayScore:68.16  },
+  ];
+
+  // ── MOCK LINEUP DATA (remove after testing) ──────────────────
+  const MOCK_LINEUPS = {
+    't01': { dkUser:'kswetnam1342', totalPoints:203.66, players:[
+      {pos:'QB',   name:'Josh Allen',          pts:52.16},
+      {pos:'RB',   name:'Christian McCaffrey', pts:38.10},
+      {pos:'RB',   name:'Derrick Henry',       pts:28.50},
+      {pos:'WR',   name:'Tyreek Hill',         pts:28.20},
+      {pos:'WR',   name:'Justin Jefferson',    pts:22.80},
+      {pos:'WR',   name:'Davante Adams',       pts:12.60},
+      {pos:'TE',   name:'Travis Kelce',        pts:10.30},
+      {pos:'FLEX', name:'CeeDee Lamb',         pts: 7.50},
+      {pos:'DST',  name:'San Francisco',       pts: 3.50},
+    ]},
+    't02': { dkUser:'Timtim130', totalPoints:177.56, players:[
+      {pos:'QB',   name:'Lamar Jackson',       pts:44.16},
+      {pos:'RB',   name:'Bijan Robinson',      pts:32.10},
+      {pos:'RB',   name:'Tony Pollard',        pts:18.50},
+      {pos:'WR',   name:'Stefon Diggs',        pts:24.20},
+      {pos:'WR',   name:'DeAndre Hopkins',     pts:18.80},
+      {pos:'WR',   name:'Keenan Allen',        pts:14.60},
+      {pos:'TE',   name:'Sam LaPorta',         pts:12.30},
+      {pos:'FLEX', name:'Deebo Samuel',        pts: 8.40},
+      {pos:'DST',  name:'Baltimore',           pts: 4.50},
+    ]},
+    't03': { dkUser:'watz23', totalPoints:167.10, players:[
+      {pos:'QB',   name:'Patrick Mahomes',     pts:42.16},
+      {pos:'RB',   name:'Josh Jacobs',         pts:30.10},
+      {pos:'RB',   name:'Aaron Jones',         pts:18.50},
+      {pos:'WR',   name:'Cooper Kupp',         pts:22.20},
+      {pos:'WR',   name:'Amon-Ra St. Brown',   pts:18.80},
+      {pos:'WR',   name:'DK Metcalf',          pts:13.60},
+      {pos:'TE',   name:'Mark Andrews',        pts:10.30},
+      {pos:'FLEX', name:'Zay Flowers',         pts: 7.94},
+      {pos:'DST',  name:'Pittsburgh',          pts: 3.50},
+    ]},
+    't04': { dkUser:'mvinke', totalPoints:161.20, players:[
+      {pos:'QB',   name:'Joe Burrow',          pts:40.16},
+      {pos:'RB',   name:'Saquon Barkley',      pts:28.10},
+      {pos:'RB',   name:'Breece Hall',         pts:18.50},
+      {pos:'WR',   name:'Garrett Wilson',      pts:22.20},
+      {pos:'WR',   name:'Rashee Rice',         pts:18.80},
+      {pos:'WR',   name:'Mike Evans',          pts:13.60},
+      {pos:'TE',   name:'Dallas Goedert',      pts: 9.30},
+      {pos:'FLEX', name:'DJ Moore',            pts: 6.24},
+      {pos:'DST',  name:'Cleveland',           pts: 4.30},
+    ]},
+    't05': { dkUser:'joe974', totalPoints:157.44, players:[
+      {pos:'QB',   name:'Dak Prescott',        pts:38.16},
+      {pos:'RB',   name:'Jonathan Taylor',     pts:28.10},
+      {pos:'RB',   name:'Kyren Williams',      pts:16.50},
+      {pos:'WR',   name:'Puka Nacua',          pts:22.20},
+      {pos:'WR',   name:'Jordan Addison',      pts:16.80},
+      {pos:'WR',   name:'Brian Thomas',        pts:13.60},
+      {pos:'TE',   name:'Trey McBride',        pts:10.30},
+      {pos:'FLEX', name:'Rome Odunze',         pts: 7.28},
+      {pos:'DST',  name:'Houston',             pts: 4.50},
+    ]},
+    't06': { dkUser:'sgasperson', totalPoints:153.92, players:[
+      {pos:'QB',   name:'C.J. Stroud',         pts:36.16},
+      {pos:'RB',   name:'David Montgomery',    pts:26.10},
+      {pos:'RB',   name:'De\'Von Achane',      pts:16.50},
+      {pos:'WR',   name:'Chris Godwin',        pts:22.20},
+      {pos:'WR',   name:'Amon-Ra St. Brown',   pts:16.80},
+      {pos:'WR',   name:'Zay Flowers',         pts:13.60},
+      {pos:'TE',   name:'Evan Engram',         pts:10.30},
+      {pos:'FLEX', name:'Rashee Rice',         pts: 7.76},
+      {pos:'DST',  name:'Indianapolis',        pts: 4.50},
+    ]},
+    't07': { dkUser:'HeHateMe14', totalPoints:153.12, players:[
+      {pos:'QB',   name:'Jalen Hurts',         pts:36.16},
+      {pos:'RB',   name:'Joe Mixon',           pts:28.10},
+      {pos:'RB',   name:'Najee Harris',        pts:16.50},
+      {pos:'WR',   name:'Ja\'Marr Chase',      pts:22.20},
+      {pos:'WR',   name:'Jaylen Waddle',       pts:16.80},
+      {pos:'WR',   name:'Calvin Ridley',       pts:12.60},
+      {pos:'TE',   name:'Jake Ferguson',       pts:10.30},
+      {pos:'FLEX', name:'Mike Evans',          pts: 6.96},
+      {pos:'DST',  name:'Jacksonville',        pts: 3.50},
+    ]},
+    't08': { dkUser:'Mattraq1', totalPoints:150.84, players:[
+      {pos:'QB',   name:'Brock Purdy',         pts:34.16},
+      {pos:'RB',   name:'James Cook',          pts:26.10},
+      {pos:'RB',   name:'Isiah Pacheco',       pts:16.50},
+      {pos:'WR',   name:'Malik Nabers',        pts:22.20},
+      {pos:'WR',   name:'Garrett Wilson',      pts:16.80},
+      {pos:'WR',   name:'Jaxon Smith-Njigba',  pts:12.60},
+      {pos:'TE',   name:'David Njoku',         pts:10.30},
+      {pos:'FLEX', name:'Tank Dell',           pts: 7.68},
+      {pos:'DST',  name:'Tennessee',           pts: 4.50},
+    ]},
+    't09': { dkUser:'EriksRIX', totalPoints:148.24, players:[
+      {pos:'QB',   name:'Sam Darnold',         pts:34.16},
+      {pos:'RB',   name:'Breece Hall',         pts:26.10},
+      {pos:'RB',   name:'Tony Pollard',        pts:14.50},
+      {pos:'WR',   name:'DeAndre Hopkins',     pts:22.20},
+      {pos:'WR',   name:'Cooper Kupp',         pts:16.80},
+      {pos:'WR',   name:'Deebo Samuel',        pts:13.60},
+      {pos:'TE',   name:'T.J. Hockenson',      pts:10.30},
+      {pos:'FLEX', name:'Aaron Jones',         pts: 6.08},
+      {pos:'DST',  name:'Buffalo',             pts: 4.50},
+    ]},
+    't10': { dkUser:'mikedrew237', totalPoints:147.04, players:[
+      {pos:'QB',   name:'Tua Tagovailoa',      pts:34.16},
+      {pos:'RB',   name:'Joe Mixon',           pts:26.10},
+      {pos:'RB',   name:'Saquon Barkley',      pts:14.50},
+      {pos:'WR',   name:'Stefon Diggs',        pts:22.20},
+      {pos:'WR',   name:'DK Metcalf',          pts:16.80},
+      {pos:'WR',   name:'Puka Nacua',          pts:12.60},
+      {pos:'TE',   name:'Sam LaPorta',         pts:10.30},
+      {pos:'FLEX', name:'Brian Thomas',        pts: 5.88},
+      {pos:'DST',  name:'Miami',               pts: 4.50},
+    ]},
+    't11': { dkUser:'fadeintobolivian', totalPoints:146.56, players:[
+      {pos:'QB',   name:'Jordan Love',         pts:33.16},
+      {pos:'RB',   name:'Jaylen Warren',       pts:24.10},
+      {pos:'RB',   name:'David Montgomery',    pts:14.50},
+      {pos:'WR',   name:'Jordan Addison',      pts:22.20},
+      {pos:'WR',   name:'Rashod Bateman',      pts:16.80},
+      {pos:'WR',   name:'Cedric Tillman',      pts:13.60},
+      {pos:'TE',   name:'Dalton Schultz',      pts:10.30},
+      {pos:'FLEX', name:'Zay Jones',           pts: 7.40},
+      {pos:'DST',  name:'New England',         pts: 4.50},
+    ]},
+    't12': { dkUser:'HotUnderDog', totalPoints:144.06, players:[
+      {pos:'QB',   name:'Anthony Richardson',  pts:33.16},
+      {pos:'RB',   name:'Roschon Johnson',     pts:24.10},
+      {pos:'RB',   name:'Tyler Allgeier',      pts:12.50},
+      {pos:'WR',   name:'DJ Moore',            pts:20.20},
+      {pos:'WR',   name:'Michael Pittman',     pts:14.80},
+      {pos:'WR',   name:'Keenan Allen',        pts:13.60},
+      {pos:'TE',   name:'Michael Mayer',       pts:11.30},
+      {pos:'FLEX', name:'Quentin Johnston',    pts: 9.90},
+      {pos:'DST',  name:'N.Y. Jets',           pts: 4.50},
+    ]},
+    't13': { dkUser:'mystichic23', totalPoints:142.54, players:[
+      {pos:'QB',   name:'Baker Mayfield',      pts:30.16},
+      {pos:'RB',   name:'Ty Chandler',         pts:24.10},
+      {pos:'RB',   name:'Khalil Herbert',      pts:12.50},
+      {pos:'WR',   name:'Courtland Sutton',    pts:20.20},
+      {pos:'WR',   name:'Michael Pittman',     pts:14.80},
+      {pos:'WR',   name:'KJ Osborn',           pts:13.60},
+      {pos:'TE',   name:'Evan Engram',         pts:11.30},
+      {pos:'FLEX', name:'Jalen Waddle',        pts:11.38},
+      {pos:'DST',  name:'Denver',              pts: 4.50},
+    ]},
+    't14': { dkUser:'scottr85', totalPoints:138.36, players:[
+      {pos:'QB',   name:'Geno Smith',          pts:28.16},
+      {pos:'RB',   name:'Jerome Ford',         pts:22.10},
+      {pos:'RB',   name:'Patrick Taylor',      pts:12.50},
+      {pos:'WR',   name:'Tyler Lockett',       pts:18.20},
+      {pos:'WR',   name:'Diontae Johnson',     pts:14.80},
+      {pos:'WR',   name:'Khalil Shakir',       pts:13.60},
+      {pos:'TE',   name:'Luke Musgrave',       pts:11.30},
+      {pos:'FLEX', name:'Cole Turner',         pts:13.20},
+      {pos:'DST',  name:'Kansas City',         pts: 4.50},
+    ]},
+    't15': { dkUser:'sbmccarn', totalPoints:135.72, players:[
+      {pos:'QB',   name:'Derek Carr',          pts:26.16},
+      {pos:'RB',   name:'Emari Demercado',     pts:20.10},
+      {pos:'RB',   name:'Hassan Haskins',      pts:12.50},
+      {pos:'WR',   name:'Chris Olave',         pts:18.20},
+      {pos:'WR',   name:'Tre Tucker',          pts:12.80},
+      {pos:'WR',   name:'Jalen Guyton',        pts:11.60},
+      {pos:'TE',   name:'Tanner McLachlan',    pts:12.30},
+      {pos:'FLEX', name:'Charlie Jones',       pts:13.56},
+      {pos:'DST',  name:'Las Vegas',           pts: 8.50},
+    ]},
+    't16': { dkUser:'tarheelshaggy23', totalPoints:133.40, players:[
+      {pos:'QB',   name:'Caleb Williams',      pts:24.16},
+      {pos:'RB',   name:'Jake Funk',           pts:18.10},
+      {pos:'RB',   name:'Clyde Edwards-Helaire',pts:12.50},
+      {pos:'WR',   name:'Josh Reynolds',       pts:18.20},
+      {pos:'WR',   name:'Derius Davis',        pts:12.80},
+      {pos:'WR',   name:'Shi Smith',           pts:11.60},
+      {pos:'TE',   name:'Donald Parham',       pts:10.30},
+      {pos:'FLEX', name:'Cole Beasley',        pts:13.24},
+      {pos:'DST',  name:'L.A. Chargers',       pts:12.50},
+    ]},
+    't17': { dkUser:'Vinkster24', totalPoints:132.30, players:[
+      {pos:'QB',   name:'Jayden Daniels',      pts:28.16},
+      {pos:'RB',   name:'Boston Scott',        pts:20.10},
+      {pos:'RB',   name:'Devin Singletary',    pts:12.50},
+      {pos:'WR',   name:'Parris Campbell',     pts:18.20},
+      {pos:'WR',   name:'Dez Fitzpatrick',     pts:12.80},
+      {pos:'WR',   name:'Noah Brown',          pts: 9.60},
+      {pos:'TE',   name:'Cole Kmet',           pts:10.30},
+      {pos:'FLEX', name:'Anthony Schwartz',    pts: 9.14},
+      {pos:'DST',  name:'Chicago',             pts:11.50},
+    ]},
+    't18': { dkUser:'paulsupple', totalPoints:131.56, players:[
+      {pos:'QB',   name:'Drake Maye',          pts:27.16},
+      {pos:'RB',   name:'Mekhi Sargent',       pts:20.10},
+      {pos:'RB',   name:'Craig Reynolds',      pts:11.50},
+      {pos:'WR',   name:'Mecole Hardman',      pts:18.20},
+      {pos:'WR',   name:'Kendall Hinton',      pts:12.80},
+      {pos:'WR',   name:'Josh Malone',         pts: 9.60},
+      {pos:'TE',   name:'Brock Wright',        pts: 9.30},
+      {pos:'FLEX', name:'Quez Watkins',        pts: 9.40},
+      {pos:'DST',  name:'Detroit',             pts:13.50},
+    ]},
+    't19': { dkUser:'johnniefive', totalPoints:129.38, players:[
+      {pos:'QB',   name:'Bo Nix',              pts:26.16},
+      {pos:'RB',   name:'James Conner',        pts:18.10},
+      {pos:'RB',   name:'Dare Ogunbowale',     pts:11.50},
+      {pos:'WR',   name:'Dontayvion Wicks',    pts:16.20},
+      {pos:'WR',   name:'Jeff Smith',          pts:12.80},
+      {pos:'WR',   name:'Samori Toure',        pts: 9.60},
+      {pos:'TE',   name:'Tucker Kraft',        pts: 8.30},
+      {pos:'FLEX', name:'Isaiah McKenzie',     pts: 7.72},
+      {pos:'DST',  name:'Green Bay',           pts:19.00},
+    ]},
+    't20': { dkUser:'droid1232', totalPoints:128.26, players:[
+      {pos:'QB',   name:'JJ McCarthy',         pts:24.16},
+      {pos:'RB',   name:'Myles Gaskin',        pts:18.10},
+      {pos:'RB',   name:'Duke Johnson',        pts:10.50},
+      {pos:'WR',   name:'Justin Jefferson',    pts:14.20},
+      {pos:'WR',   name:'Jordan Addison',      pts:11.80},
+      {pos:'WR',   name:'Ben Skowronek',       pts: 9.60},
+      {pos:'TE',   name:'T.J. Hockenson',      pts: 8.30},
+      {pos:'FLEX', name:'Tyjae Spears',        pts: 7.60},
+      {pos:'DST',  name:'Minnesota',           pts:24.00},
+    ]},
+    't21': { dkUser:'vinkster15', totalPoints:124.16, players:[
+      {pos:'QB',   name:'Kirk Cousins',        pts:22.16},
+      {pos:'RB',   name:'Bijan Robinson',      pts:16.10},
+      {pos:'RB',   name:'Tyler Allgeier',      pts:10.50},
+      {pos:'WR',   name:'Drake London',        pts:14.20},
+      {pos:'WR',   name:'Darnell Mooney',      pts:10.80},
+      {pos:'WR',   name:'KhaDarel Hodge',      pts: 8.60},
+      {pos:'TE',   name:'Kyle Pitts',          pts: 7.30},
+      {pos:'FLEX', name:'Penny Hart',          pts: 7.50},
+      {pos:'DST',  name:'Atlanta',             pts:27.00},
+    ]},
+    't22': { dkUser:'LSUNick413', totalPoints:123.14, players:[
+      {pos:'QB',   name:'Bryce Young',         pts:21.16},
+      {pos:'RB',   name:'Chuba Hubbard',       pts:15.10},
+      {pos:'RB',   name:'Miles Sanders',       pts:10.50},
+      {pos:'WR',   name:'Adam Thielen',        pts:13.20},
+      {pos:'WR',   name:'Jonathan Mingo',      pts:10.80},
+      {pos:'WR',   name:'Terrace Marshall',    pts: 8.60},
+      {pos:'TE',   name:'Tommy Tremble',       pts: 7.30},
+      {pos:'FLEX', name:'Laviska Shenault',    pts: 7.48},
+      {pos:'DST',  name:'Carolina',            pts:29.00},
+    ]},
+    't23': { dkUser:'smittyjo5', totalPoints:121.32, players:[
+      {pos:'QB',   name:'Derek Carr',          pts:20.16},
+      {pos:'RB',   name:'Alvin Kamara',        pts:15.10},
+      {pos:'RB',   name:'Kendre Miller',       pts:10.50},
+      {pos:'WR',   name:'Chris Olave',         pts:13.20},
+      {pos:'WR',   name:'Michael Thomas',      pts:10.80},
+      {pos:'WR',   name:'Rashid Shaheed',      pts: 8.60},
+      {pos:'TE',   name:'Juwan Johnson',       pts: 7.30},
+      {pos:'FLEX', name:'A.T. Perry',          pts: 6.66},
+      {pos:'DST',  name:'New Orleans',         pts:29.00},
+    ]},
+    't24': { dkUser:'cmbarbee226', totalPoints:117.16, players:[
+      {pos:'QB',   name:'Baker Mayfield',      pts:19.16},
+      {pos:'RB',   name:'Rachaad White',       pts:14.10},
+      {pos:'RB',   name:'Chase Edmonds',       pts:10.50},
+      {pos:'WR',   name:'Mike Evans',          pts:12.20},
+      {pos:'WR',   name:'Chris Godwin',        pts:10.80},
+      {pos:'WR',   name:'Trey Palmer',         pts: 7.60},
+      {pos:'TE',   name:'Cade Otton',          pts: 7.30},
+      {pos:'FLEX', name:'Ko Kieft',            pts: 6.00},
+      {pos:'DST',  name:'Tampa Bay',           pts:29.50},
+    ]},
+    't25': { dkUser:'dukedevilsbb', totalPoints:114.24, players:[
+      {pos:'QB',   name:'Dak Prescott',        pts:18.16},
+      {pos:'RB',   name:'Ezekiel Elliott',     pts:14.10},
+      {pos:'RB',   name:'Rico Dowdle',         pts:10.50},
+      {pos:'WR',   name:'CeeDee Lamb',         pts:12.20},
+      {pos:'WR',   name:'Brandin Cooks',       pts:10.80},
+      {pos:'WR',   name:'Michael Gallup',      pts: 7.60},
+      {pos:'TE',   name:'Jake Ferguson',       pts: 7.30},
+      {pos:'FLEX', name:'Jalen Tolbert',       pts: 5.08},
+      {pos:'DST',  name:'Dallas',              pts:28.50},
+    ]},
+    't26': { dkUser:'JottieBucs', totalPoints:108.94, players:[
+      {pos:'QB',   name:'Daniel Jones',        pts:17.16},
+      {pos:'RB',   name:'Saquon Barkley',      pts:13.10},
+      {pos:'RB',   name:'Matt Breida',         pts: 9.50},
+      {pos:'WR',   name:'Malik Nabers',        pts:11.20},
+      {pos:'WR',   name:'Wan\'Dale Robinson',  pts:10.80},
+      {pos:'WR',   name:'Darius Slayton',      pts: 7.60},
+      {pos:'TE',   name:'Darren Waller',       pts: 7.30},
+      {pos:'FLEX', name:'Isaiah Hodgins',      pts: 5.28},
+      {pos:'DST',  name:'N.Y. Giants',         pts:27.00},
+    ]},
+    't27': { dkUser:'imrobins', totalPoints:106.26, players:[
+      {pos:'QB',   name:'Jalen Hurts',         pts:16.16},
+      {pos:'RB',   name:'D\'Andre Swift',      pts:13.10},
+      {pos:'RB',   name:'Kenneth Gainwell',    pts: 9.50},
+      {pos:'WR',   name:'A.J. Brown',          pts:11.20},
+      {pos:'WR',   name:'DeVonta Smith',       pts: 9.80},
+      {pos:'WR',   name:'Olamide Zaccheaus',   pts: 7.60},
+      {pos:'TE',   name:'Dallas Goedert',      pts: 7.30},
+      {pos:'FLEX', name:'Britain Covey',       pts: 4.60},
+      {pos:'DST',  name:'Philadelphia',        pts:27.00},
+    ]},
+    't28': { dkUser:'Jimmyjr54', totalPoints:103.76, players:[
+      {pos:'QB',   name:'Sam Howell',          pts:15.16},
+      {pos:'RB',   name:'Brian Robinson',      pts:12.10},
+      {pos:'RB',   name:'Antonio Gibson',      pts: 9.50},
+      {pos:'WR',   name:'Terry McLaurin',      pts:11.20},
+      {pos:'WR',   name:'Jahan Dotson',        pts: 9.80},
+      {pos:'WR',   name:'Curtis Samuel',       pts: 7.60},
+      {pos:'TE',   name:'Logan Thomas',        pts: 7.30},
+      {pos:'FLEX', name:'John Bates',          pts: 3.60},
+      {pos:'DST',  name:'Washington',          pts:27.50},
+    ]},
+    't29': { dkUser:'vrr325', totalPoints:99.06, players:[
+      {pos:'QB',   name:'Kyler Murray',        pts:14.16},
+      {pos:'RB',   name:'James Conner',        pts:12.10},
+      {pos:'RB',   name:'Emari Demercado',     pts: 8.50},
+      {pos:'WR',   name:'Marquise Brown',      pts:10.20},
+      {pos:'WR',   name:'Michael Wilson',      pts: 8.80},
+      {pos:'WR',   name:'Greg Dortch',         pts: 7.60},
+      {pos:'TE',   name:'Trey McBride',        pts: 6.30},
+      {pos:'FLEX', name:'Rondale Moore',       pts: 3.40},
+      {pos:'DST',  name:'Arizona',             pts:28.00},
+    ]},
+    't30': { dkUser:'headsmasher1104', totalPoints:96.50, players:[
+      {pos:'QB',   name:'Matthew Stafford',    pts:13.16},
+      {pos:'RB',   name:'Cam Akers',           pts:11.10},
+      {pos:'RB',   name:'Zach Evans',          pts: 8.50},
+      {pos:'WR',   name:'Cooper Kupp',         pts:10.20},
+      {pos:'WR',   name:'Puka Nacua',          pts: 8.80},
+      {pos:'WR',   name:'Tutu Atwell',         pts: 7.60},
+      {pos:'TE',   name:'Tyler Higbee',        pts: 6.30},
+      {pos:'FLEX', name:'Ben Skowronek',       pts: 2.84},
+      {pos:'DST',  name:'L.A. Rams',           pts:28.00},
+    ]},
+    't31': { dkUser:'jerall12000', totalPoints:88.70, players:[
+      {pos:'QB',   name:'Brock Purdy',         pts:12.16},
+      {pos:'RB',   name:'Christian McCaffrey', pts:10.10},
+      {pos:'RB',   name:'Jordan Mason',        pts: 7.50},
+      {pos:'WR',   name:'Deebo Samuel',        pts: 8.20},
+      {pos:'WR',   name:'Brandon Aiyuk',       pts: 7.80},
+      {pos:'WR',   name:'Jauan Jennings',      pts: 6.60},
+      {pos:'TE',   name:'George Kittle',       pts: 5.30},
+      {pos:'FLEX', name:'Ray-Ray McCloud',     pts: 2.54},
+      {pos:'DST',  name:'San Francisco',       pts:28.50},
+    ]},
+    't32': { dkUser:'Jsize', totalPoints:68.16, players:[
+      {pos:'QB',   name:'Geno Smith',          pts: 8.16},
+      {pos:'RB',   name:'Kenneth Walker',      pts: 7.10},
+      {pos:'RB',   name:'Zach Charbonnet',     pts: 6.50},
+      {pos:'WR',   name:'Tyler Lockett',       pts: 6.20},
+      {pos:'WR',   name:'Jaxon Smith-Njigba',  pts: 5.80},
+      {pos:'WR',   name:'Jake Bobo',           pts: 5.60},
+      {pos:'TE',   name:'Noah Fant',           pts: 4.30},
+      {pos:'FLEX', name:'Cody Thompson',       pts: 1.50},
+      {pos:'DST',  name:'Seattle',             pts:23.00},
+    ]},
+  };
+  // ──────────────────────────────────────────
+
+  async function loadLineups(week) {
+    if (!isLive()) return;
+    try {
+      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=lineups&week=' + week);
+      const data = await res.json();
+      if (data.success && data.lineups) window._lineups = data.lineups;
+    } catch (err) {
+      console.warn('loadLineups failed', err);
+    }
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────
+  async function boot() {
+    await loadClaims();
+    standings = await loadStandings();
+    window._matchups = await loadMatchups();
+
+    // ── MOCK OVERRIDE (remove after testing) ──
+    window._claimUsernames = MOCK_USERNAMES;
+    MOCK_LEAGUE.teams.forEach(t => { claimedTeams[t.id] = 'MockPlayer'; });
+    window._matchups = MOCK_MATCHUP_DATA;
+    standings = MOCK_STANDINGS;
+    window._lineups = MOCK_LINEUPS;
+    // ──────────────────────────────────────────
+
+    populateWeekFilter();
+    renderMatchups();
+  }
+
+  boot();
+</script>
+</body>
+</html>
