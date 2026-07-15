@@ -8,19 +8,19 @@
 
   <style>
     :root {
-      --bg:          #0a0c0f;
-      --surface:     #111418;
-      --surface2:    #181c22;
-      --border:      #232830;
-      --border2:     #2e3540;
-      --accent:      #e8a020;
-      --accent2:     #c47010;
+      --bg:          #030d06;
+      --surface:     #071a0d;
+      --surface2:    #0c2414;
+      --border:      #143d1c;
+      --border2:     #1c5228;
+      --accent:      #ffffff;
+      --accent2:     #d0d8d4;
       --green:       #2ecc71;
       --red:         #e74c3c;
-      --muted:       #5a6270;
-      --text:        #d8dde6;
-      --text-dim:    #8892a0;
-      --heading:     #f0f4f8;
+      --muted:       #5e7068;
+      --text:        #ffffff;
+      --text-dim:    #9ab0a4;
+      --heading:     #ffffff;
       --radius:      4px;
       --font-ui:     'Calibri', 'Candara', sans-serif;
       --font-mono:   'Calibri', 'Candara', sans-serif;
@@ -83,16 +83,16 @@
     }
     nav a:hover, nav a:focus {
       color: var(--accent);
-      background: rgba(232,160,32,.08);
+      background: rgba(255,255,255,.10);
       text-decoration: none;
     }
     nav a.active {
       color: var(--accent);
-      background: rgba(232,160,32,.1);
+      background: rgba(255,255,255,.15);
     }
 
     .hero {
-      background: linear-gradient(135deg, #0d1117 0%, #141920 60%, #1a1000 100%);
+      background: linear-gradient(135deg, #020a04 0%, #061510 55%, #0a2210 100%);
       border-bottom: 1px solid var(--border);
       padding: 40px 16px 32px;
       text-align: center;
@@ -320,6 +320,20 @@
     .conf-banner-label.conf-nfc span { color: #1a5276; }
     .standings-card-header.conf-afc { color: #c0392b; }
     .standings-card-header.conf-nfc { color: #1a5276; }
+  
+    /* ── Claim button & Available badge — gold ── */
+    .btn-claim { background: #e8a020 !important; color: #000 !important; }
+    .btn-claim:hover { background: #c47010 !important; }
+    .btn-claim:disabled { background: #5a5a5a !important; color: #aaa !important; }
+    .badge-available { background: rgba(232,160,32,.13) !important; color: #e8a020 !important; border-color: rgba(232,160,32,.35) !important; }
+
+    /* ── AFC = red, NFC = blue ── */
+    .conf-grid .conf-card:first-child .conf-header { color: #f05050; border-bottom-color: #f05050; }
+    .conf-grid .conf-card:first-child .conf-header small { color: rgba(240,80,80,.65); }
+    .conf-grid .conf-card:first-child .division-name { color: #c05060; }
+    .conf-grid .conf-card:last-child .conf-header { color: #60a5fa; border-bottom-color: #60a5fa; }
+    .conf-grid .conf-card:last-child .conf-header small { color: rgba(96,165,250,.65); }
+    .conf-grid .conf-card:last-child .division-name { color: #4a90d8; }
   </style>
 </head>
 <body>
