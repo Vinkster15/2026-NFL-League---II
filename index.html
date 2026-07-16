@@ -1021,6 +1021,9 @@
   let pendingTeamId        = null;
   let pendingUnclaimTeamId = null;
 
+  // Which team THIS browser has claimed (null = none yet)
+  window._myTeamId = null;
+
   // =============================================================
   //  GOOGLE SHEETS INTEGRATION
   //  ——————————————————————————
@@ -1235,7 +1238,7 @@
              title="Release this team"
              onclick="openUnclaimModal('${team.id}', '${escHtml(team.name)}')"
            >✕ Release</button>`
-        : !isClaimed
+        : (!isClaimed && !window._myTeamId)
         ? `<button
              class="btn-claim"
              data-team-id="${team.id}"
@@ -1307,6 +1310,26 @@
       if (mainNav)       mainNav.classList.add('nav-has-signup');
     }
 
+    // "You already claimed a team" notice
+    const _grid = document.getElementById('conference-grid');
+    if (_grid) {
+      let _banner = document.getElementById('my-team-banner');
+      if (!_banner) {
+        _banner = document.createElement('p');
+        _banner.id = 'my-team-banner';
+        _banner.style.cssText = 'font-family:var(--font-mono);font-size:13px;color:#2ecc71;padding:8px 12px;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25);border-radius:4px;margin-bottom:16px;display:none';
+        _grid.parentNode.insertBefore(_banner, _grid);
+      }
+      if (window._myTeamId) {
+        const _myT = data.teams.find(t => t.id === window._myTeamId);
+        _banner.textContent = _myT
+          ? `✓ You've claimed the ${_myT.name} — you cannot claim another team in this league`
+          : '✓ You already have a team claimed in this league';
+        _banner.style.display = 'block';
+      } else {
+        _banner.style.display = 'none';
+      }
+    }
   }
 
   // =============================================================
@@ -1386,6 +1409,10 @@
       claimPins[pendingTeamId]             = hashed;
       window._claimUsernames[pendingTeamId] = dk;
       saveClaimedTeams();
+
+      // Lock this browser from claiming again + sync hub "Claim a Spot" → "View League"
+      window._myTeamId = pendingTeamId;
+      try { localStorage.setItem('nfl2_myTeamId', pendingTeamId); localStorage.setItem('nfl2_2026_claimed', 'true'); } catch(e) {}
 
       // Update UI without full re-render
       refreshTeamRow(pendingTeamId);
@@ -1474,6 +1501,12 @@
       delete claimPins[releasedTeamId];
       saveClaimedTeams();
 
+      // If this browser released its own team, unlock claiming
+      if (releasedTeamId === window._myTeamId) {
+        window._myTeamId = null;
+        try { localStorage.removeItem('nfl2_myTeamId'); localStorage.removeItem('nfl2_2026_claimed'); } catch(e) {}
+      }
+
       refreshTeamRow(releasedTeamId);
       updateHeroStats(leagueData);
 
@@ -1542,6 +1575,15 @@
 
     // 2. Fetch claims from Google Sheets (or localStorage in offline mode)
     await loadClaims();
+
+    // Restore which team this browser claimed (auto-clear if team was since released)
+    const _mt = localStorage.getItem('nfl2_myTeamId');
+    if (_mt && claimedTeams[_mt]) {
+      window._myTeamId = _mt;
+    } else if (_mt) {
+      // Team was released — unlock this browser
+      try { localStorage.removeItem('nfl2_myTeamId'); localStorage.removeItem('nfl2_2026_claimed'); } catch(e) {}
+    }
 
     // 3. Render conference/division/team grid
     renderLeague(leagueData);
