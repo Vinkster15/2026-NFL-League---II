@@ -3,1580 +3,1019 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2026 DK NFL League - II</title>
-
-  <!--
-    ============================================================
-    2026 DK NFL LEAGUE - II — Dashboard
-    ============================================================
-    Hosting: Drop index.html into any GitHub Pages repo.
-    No build step. No server. No frameworks.
-
-    TO CONNECT REAL GOOGLE SHEETS DATA:
-    1. In Google Sheets → File → Share → Publish to web → CSV
-    2. Copy the published URL
-    3. Find GOOGLE_SHEETS_CONFIG below and replace the mock URLs
-    4. Optionally deploy a Google Apps Script Web App for signups
-    ============================================================
-  -->
-
-
+  <title>Vinkster's 12-man PPR Leagues</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    /* ============================================================
-       CSS CUSTOM PROPERTIES — Edit these to retheme the whole app
-       ============================================================ */
     :root {
-      --bg:          #030d06;
-      --surface:     #071a0d;
-      --surface2:    #0c2414;
-      --border:      #143d1c;
-      --border2:     #1c5228;
-      --accent:      #ffffff;
-      --accent2:     #d0d8d4;
-      --green:       #2ecc71;
-      --red:         #e74c3c;
-      --muted:       #5e7068;
-      --text:        #ffffff;
-      --text-dim:    #9ab0a4;
-      --heading:     #ffffff;
-      --radius:      4px;
-      --font-ui:     'Calibri', 'Candara', sans-serif;
-      --font-mono:   'Calibri', 'Candara', sans-serif;
+      --bg:           #e8edf5;
+      --surface:      #ffffff;
+      --border:       #dde4f0;
+      --text:         #0f172a;
+      --text-dim:     #475569;
+      --text-muted:   #94a3b8;
+      --header-bg:    #0a1020;
+      --radius:       18px;
+      --font:         'Outfit', 'Segoe UI', system-ui, sans-serif;
+
+      --nfl:    #0f1e36;
+      --nfl-hi: #e8a020;
+      --golf:   #0d3318;
+      --golf-hi:#3dba5e;
+      --wc:     #001a5c;
+      --wc-hi:  #d42b2b;
     }
 
-    /* ---- Reset ---- */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
+
     body {
       background: var(--bg);
+      background-image: radial-gradient(circle, rgba(99,117,160,.18) 1px, transparent 1px);
+      background-size: 26px 26px;
       color: var(--text);
-      font-family: var(--font-ui);
+      font-family: var(--font);
       font-size: 16px;
       line-height: 1.5;
       min-height: 100vh;
     }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    a { color: inherit; text-decoration: none; }
 
-    /* ---- Layout ---- */
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
-    /* ---- Header ---- */
-    header {
-      background: var(--surface);
-      border-bottom: 2px solid var(--accent);
-      padding: 0 16px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 56px;
-      gap: 16px;
-    }
-    .logo {
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: .04em;
-      color: var(--heading);
-      white-space: nowrap;
-    }
-    .logo span { color: var(--accent); }
-    nav { display: flex; gap: 4px; flex-wrap: nowrap; }
-    @media (max-width: 480px) {
-      .logo { font-size: 15px; }
-      nav a { font-size: 12px; padding: 6px 7px; }
-      /* When signup tab is present, shrink all nav tabs to fit */
-      nav.nav-has-signup a { font-size: 10px; padding: 5px 6px; }
-    }
-    nav a {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      padding: 6px 10px;
-      border-radius: var(--radius);
-      transition: color .15s, background .15s;
-    }
-    nav a:hover, nav a:focus {
-      color: var(--accent);
-      background: rgba(255,255,255,.10);
-      text-decoration: none;
-    }
-    nav a.active {
-      color: var(--accent);
-      background: rgba(255,255,255,.15);
-    }
-
-    /* ---- Hero banner ---- */
+    /* ── Hero ── */
     .hero {
-      background: linear-gradient(135deg, #020a04 0%, #061510 55%, #0a2210 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 48px 16px 40px;
+      background:
+        radial-gradient(ellipse 65% 55% at 50% -5%, rgba(240,176,40,.2) 0%, transparent 65%),
+        linear-gradient(180deg, #03060e 0%, #070d1c 45%, #0a1428 100%);
+      padding: 72px 24px 60px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Dot grid */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+    /* Gradient bottom border */
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #c8880a 20%, #f0b429 50%, #c8880a 80%, transparent 100%);
     }
     .hero h1 {
-      font-size: clamp(20px, 5.5vw, 64px);
+      font-size: clamp(42px, 7vw, 86px);
       font-weight: 900;
-      letter-spacing: .03em;
-      color: var(--heading);
-      line-height: 1.1;
-    }
-    .hero h1 span { color: var(--accent); }
-    .hero p {
-      margin-top: 12px;
-      font-size: 16px;
-      color: var(--text-dim);
-      font-family: var(--font-mono);
-    }
-    .stat-row {
-      display: flex;
-      justify-content: center;
-      gap: 32px;
-      margin-top: 28px;
-      flex-wrap: wrap;
-    }
-    .stat-box {
-      text-align: center;
-    }
-    .stat-box .num {
-      font-size: 24px;
-      font-weight: 900;
-      color: var(--accent);
+      color: #ffffff;
+      letter-spacing: -.02em;
       line-height: 1;
+      margin-bottom: 18px;
+      position: relative;
     }
-    .stat-box .lbl {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-top: 4px;
+    .hero h1 .gold-line {
+      color: #f0b429;
+      font-style: italic;
     }
-
-    /* ---- Section titles ---- */
-    .section { padding: 40px 16px; }
-    .section-title {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: var(--accent);
-      border-left: 3px solid var(--accent);
-      padding-left: 10px;
-      margin-bottom: 24px;
-    }
-    h2.block-heading {
-      font-size: clamp(20px, 3vw, 28px);
-      font-weight: 900;
-      color: var(--heading);
-      letter-spacing: .02em;
-      margin-bottom: 20px;
-    }
-
-    /* ---- Conference grid ---- */
-    .conf-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-    @media (max-width: 700px) { .conf-grid { grid-template-columns: 1fr; } }
-
-    .conf-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .conf-header {
-      padding: 12px 16px;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-      color: var(--heading);
-      border-bottom: 2px solid var(--accent);
-      background: var(--surface2);
-    }
-    .conf-header small {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: .08em;
-      color: var(--muted);
-      margin-left: 8px;
-      text-transform: uppercase;
-    }
-
-    .division-block { border-bottom: 1px solid var(--border); }
-    .division-block:last-child { border-bottom: none; }
-    .division-name {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      padding: 10px 16px 6px;
-      background: rgba(255,255,255,.02);
-    }
-    .team-list { padding: 0 16px 10px; }
-
-    .team-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--border);
-      gap: 8px;
-    }
-    .team-row:last-child { border-bottom: none; }
-    .team-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      flex: 1;
-    }
-    .team-name.claimed { color: var(--muted); }
-
-    .badge {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: .04em;
-      padding: 2px 8px;
-      border-radius: 2px;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-    .badge-available { background: rgba(46,204,113,.12); color: var(--green); border: 1px solid rgba(46,204,113,.25); }
-    .badge-claimed   { background: rgba(90,98,112,.12);  color: var(--muted);  border: 1px solid rgba(90,98,112,.25); }
-
-    .btn-claim {
-      font-family: var(--font-ui);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      padding: 4px 12px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background .15s, opacity .15s;
-      white-space: nowrap;
-    }
-    .btn-claim:hover { background: var(--accent2); }
-    .btn-claim:disabled { opacity: .35; cursor: not-allowed; background: var(--muted); color: var(--bg); }
-
-    /* Unclaim button — sits next to claimed badge */
-    .btn-unclaim {
-      font-family: var(--font-ui);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .07em;
-      text-transform: uppercase;
-      background: transparent;
-      color: var(--red);
-      border: 1px solid rgba(231,76,60,.35);
-      padding: 3px 9px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background .15s, border-color .15s;
-      white-space: nowrap;
-    }
-    .btn-unclaim:hover { background: rgba(231,76,60,.12); border-color: var(--red); }
-
-    /* ---- Signup modal ---- */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.72);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal-backdrop.open { display: flex; }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-top: 3px solid var(--accent);
-      border-radius: var(--radius);
-      width: 100%;
-      max-width: 440px;
-      padding: 28px 28px 24px;
-    }
-    .modal h3 {
-      font-size: 20px;
-      font-weight: 900;
-      color: var(--heading);
-      margin-bottom: 4px;
-    }
-    .modal .modal-sub {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-bottom: 20px;
-    }
-    .modal label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 6px;
-    }
-    .modal input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border2);
-      color: var(--text);
-      font-family: var(--font-mono);
+    .hero-sub {
       font-size: 14px;
-      padding: 9px 12px;
-      border-radius: var(--radius);
-      margin-bottom: 16px;
-      outline: none;
-      transition: border-color .15s;
-    }
-    .modal input:focus { border-color: var(--accent); }
-    .modal .privacy-note {
-      font-size: 11px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      margin-bottom: 20px;
-      padding: 8px 10px;
-      background: rgba(255,255,255,.03);
-      border-radius: var(--radius);
-    }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    .btn-cancel {
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      background: transparent;
-      color: var(--text-dim);
-      border: 1px solid var(--border2);
-      padding: 8px 18px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: border-color .15s, color .15s;
-    }
-    .btn-cancel:hover { border-color: var(--text-dim); color: var(--text); }
-    .btn-submit {
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      padding: 8px 20px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background .15s;
-    }
-    .btn-submit:hover { background: var(--accent2); }
-    #modal-error {
-      font-size: 12px;
-      color: var(--red);
-      font-family: var(--font-mono);
-      min-height: 16px;
-      margin-bottom: 8px;
-    }
-
-    /* ---- Standings ---- */
-    .standings-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .standings-controls select {
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 600;
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border2);
-      padding: 7px 12px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      outline: none;
-    }
-    .standings-controls select:focus { border-color: var(--accent); }
-    .btn-refresh {
-      font-family: var(--font-ui);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 7px 14px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background .15s, color .15s;
-    }
-    .btn-refresh:hover { background: var(--accent); color: #000; }
-    #refresh-status {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .standings-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
-    }
-    .standings-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .standings-card-header {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      padding: 9px 14px;
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-    }
-    .standings-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    .standings-table th {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 7px 14px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--font-mono);
-    }
-    .standings-table th:not(:first-child) { text-align: center; }
-    .standings-table td {
-      padding: 7px 14px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 600;
-    }
-    .standings-table tr:last-child td { border-bottom: none; }
-    .standings-table td:not(:first-child) {
-      text-align: center;
-      font-family: var(--font-mono);
-      font-size: 13px;
-    }
-    .standings-table tr:hover td { background: rgba(255,255,255,.025); }
-    .rank-num {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-      margin-right: 6px;
-    }
-    .win-pct { color: var(--accent); }
-
-    /* ---- Matchups ---- */
-    .matchups-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-    .matchups-controls select {
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 600;
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border2);
-      padding: 7px 12px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      outline: none;
-    }
-    .matchups-controls select:focus { border-color: var(--accent); }
-    .matchups-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
-    }
-    .matchup-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .matchup-card-header {
-      font-size: 10px;
-      font-weight: 700;
+      font-weight: 500;
       letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 7px 14px;
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-      font-family: var(--font-mono);
+      color: rgba(148,163,184,.6);
+      position: relative;
     }
-    .matchup-body {
-      padding: 16px 14px;
+
+    /* ── Responsive hero ── */
+    @media (max-width: 480px) {
+      .hero { padding: 72px 20px 64px; }
+      .hero h1 { letter-spacing: -.01em; }
+    }
+
+    /* ── Leagues section ── */
+    .leagues-section {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 56px 24px 72px;
+    }
+    .section-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 28px;
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .matchup-team {
+    .section-label::after {
+      content: '';
       flex: 1;
-      text-align: center;
+      height: 1px;
+      background: var(--border);
     }
-    .matchup-team-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.3;
+    .leagues-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 24px;
     }
-    .matchup-team-name.winner { color: var(--green); }
-    .matchup-team-name.loser  { color: var(--muted); }
-    .matchup-player {
-      font-size: 11px;
-      color: var(--accent);
-      font-family: var(--font-mono);
-      margin-top: 3px;
+
+    /* ── League card ── */
+    .league-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,.06),
+        0 4px 16px rgba(0,0,0,.08),
+        0 0 0 1px rgba(255,255,255,.8) inset;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .28s ease;
+      animation: fadeUp .5s ease both;
     }
-    .matchup-score {
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--heading);
-      font-family: var(--font-mono);
-      text-align: center;
-      min-width: 60px;
+    .league-card:nth-child(1) { animation-delay: .05s; }
+    .league-card:nth-child(2) { animation-delay: .10s; }
+    .league-card:nth-child(3) { animation-delay: .15s; }
+    .league-card:nth-child(4) { animation-delay: .20s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .league-card:hover {
+      transform: translateY(-7px) scale(1.01);
+      box-shadow:
+        0 2px 4px rgba(0,0,0,.06),
+        0 16px 48px rgba(0,0,0,.16),
+        0 0 0 1px rgba(255,255,255,.8) inset;
+    }
+
+    /* ── Card banner ── */
+    .card-banner {
+      height: 108px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Diagonal shimmer overlay */
+    .card-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.07) 0%, transparent 55%, rgba(0,0,0,.12) 100%);
+      pointer-events: none;
+    }
+    /* Bottom accent stripe */
+    .card-banner::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .sport-icon {
+      font-size: 48px;
       line-height: 1;
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,.35));
+      position: relative;
+      z-index: 1;
     }
-    .matchup-score.upcoming {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--muted);
+
+    /* Badge base */
+    .card-badge {
+      font-size: 10px;
+      font-weight: 800;
       letter-spacing: .1em;
       text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 20px;
+      position: relative;
+      z-index: 1;
     }
-    .matchup-score-wrap {
+
+    /* Registration Open — green, glowing pulse */
+    .badge-reg {
+      background: #22c55e;
+      color: #fff;
+      box-shadow: 0 0 0 0 rgba(34,197,94,.5);
+      animation: glow-green 2.4s ease-in-out infinite;
+    }
+    @keyframes glow-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
+      50%       { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+
+    /* Live — red, blinking dot */
+    .badge-live {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 0 0 0 rgba(239,68,68,.5);
+      animation: glow-red 2s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    @keyframes glow-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.5); }
+      50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+    }
+    .live-dot {
+      width: 6px; height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .25; }
+    }
+
+    /* Banner sport colors */
+    .banner-nfl  { background: linear-gradient(135deg, var(--nfl) 0%, #1a3060 100%); }
+    .banner-golf { background: linear-gradient(135deg, var(--golf) 0%, #1a5c2e 100%); }
+    .banner-wc   { background: linear-gradient(135deg, var(--wc) 0%, #0a3090 100%); }
+    .banner-tbd  { background: linear-gradient(135deg, #2a3040 0%, #3a4050 100%); }
+
+    .banner-nfl::after  { background: linear-gradient(90deg, var(--nfl-hi), #f5c842); }
+    .banner-golf::after { background: linear-gradient(90deg, var(--golf-hi), #6dda80); }
+    .banner-wc::after   { background: linear-gradient(90deg, var(--wc-hi), #ff6060); }
+    .banner-tbd::after  { background: #4b5563; }
+
+    /* ── Card body ── */
+    .card-body {
+      padding: 22px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .card-sport {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .card-name {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: .01em;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .card-season {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    /* Stats — 3-col flex */
+    .card-stats {
+      display: flex;
+      gap: 0;
+      margin-bottom: 22px;
+      background: #f8faff;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .stat-item {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      min-width: 70px;
+      padding: 10px 8px;
+      border-right: 1px solid var(--border);
     }
-    .matchup-score-nums {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 26px;
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-size: 17px;
       font-weight: 900;
-      color: var(--heading);
+      color: var(--text);
+      line-height: 1;
     }
-    .matchup-score-sep {
-      font-size: 18px;
-      color: var(--muted);
-      font-weight: 400;
-    }
-    .matchup-final-label {
-      font-size: 10px;
+    .stat-label {
+      font-size: 9px;
       font-weight: 700;
       letter-spacing: .1em;
       text-transform: uppercase;
-      color: var(--muted);
-      font-family: var(--font-mono);
-    }
-    #matchups-empty {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--muted);
-      padding: 20px 0;
+      color: var(--text-muted);
+      margin-top: 3px;
     }
 
-    /* ---- Toast ---- */
-    #toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-left: 3px solid var(--green);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 13px;
-      padding: 12px 18px;
-      border-radius: var(--radius);
-      z-index: 300;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity .25s, transform .25s;
-      pointer-events: none;
-      max-width: 320px;
+    /* Stats — 4-col 2×2 grid */
+    .card-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      margin-bottom: 22px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
     }
-    #toast.show { opacity: 1; transform: translateY(0); }
+    .card-stats-grid .stat-item {
+      background: #f8faff;
+      border-right: none;
+      border-radius: 0;
+    }
 
-    /* ---- Footer ---- */
-    footer {
+    /* Sport-colored stat numbers per card type */
+    .card-nfl .stat-num  { color: #1a3060; }
+    .card-golf .stat-num { color: #1a5c2e; }
+    .card-wc .stat-num   { color: #0a3090; }
+
+    .card-divider {
+      border: none;
       border-top: 1px solid var(--border);
-      padding: 20px 16px;
+      margin-bottom: 18px;
+      margin-top: auto;
+    }
+
+    /* ── Buttons ── */
+    .btn-enter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
       text-align: center;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-enter::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,.12), transparent);
+      pointer-events: none;
+    }
+    .btn-enter:hover {
+      transform: translateY(-2px);
+    }
+    .btn-enter .btn-arrow {
+      transition: transform .2s ease;
+    }
+    .btn-enter:hover .btn-arrow { transform: translateX(3px); }
+
+    .btn-nfl {
+      background: linear-gradient(135deg, #162844 0%, #1e3a5f 100%);
+      color: #e8c060;
+      box-shadow: 0 4px 14px rgba(22,40,68,.35);
+    }
+    .btn-nfl:hover  { box-shadow: 0 6px 20px rgba(22,40,68,.5); filter: brightness(1.1); }
+
+    .btn-golf {
+      background: linear-gradient(135deg, #1a5c2e 0%, #2d7a42 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(26,92,46,.35);
+    }
+    .btn-golf:hover { box-shadow: 0 6px 20px rgba(26,92,46,.5); filter: brightness(1.1); }
+
+    .btn-wc {
+      background: linear-gradient(135deg, #002868 0%, #0a3a90 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(0,40,104,.35);
+    }
+    .btn-wc:hover   { box-shadow: 0 6px 20px rgba(0,40,104,.5); filter: brightness(1.1); }
+
+    .btn-disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* ── Two-button row ── */
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .card-actions .btn-enter { flex: 1; }
+
+    .btn-rules {
+      padding: 13px 16px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font);
       font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s, color .15s, border-color .15s, transform .15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
-    footer a { color: var(--muted); text-decoration: underline; }
-
-    /* ---- Utility ---- */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
-    @media (max-width: 480px) {
-      .modal { padding: 20px 16px; }
+    .btn-rules:hover {
+      background: #f0f4ff;
+      border-color: #a8b8d0;
+      color: var(--text);
+      transform: translateY(-1px);
     }
-  
-    /* ── Claim button & Available badge — gold ── */
-    .btn-claim { background: #e8a020 !important; color: #000 !important; }
-    .btn-claim:hover { background: #c47010 !important; }
-    .btn-claim:disabled { background: #5a5a5a !important; color: #aaa !important; }
-    .badge-available { background: rgba(46,204,113,.12) !important; color: #2ecc71 !important; border-color: rgba(46,204,113,.25) !important; }
 
-    /* ── AFC = red, NFC = blue ── */
-    .conf-grid .conf-card:first-child .conf-header { color: #f05050; border-bottom-color: #f05050; }
-    .conf-grid .conf-card:first-child .conf-header small { color: rgba(240,80,80,.65); }
-    .conf-grid .conf-card:first-child .division-name { color: #c05060; }
-    .conf-grid .conf-card:last-child .conf-header { color: #60a5fa; border-bottom-color: #60a5fa; }
-    .conf-grid .conf-card:last-child .conf-header small { color: rgba(96,165,250,.65); }
-    .conf-grid .conf-card:last-child .division-name { color: #4a90d8; }
+    /* ── Rules modal ── */
+    .rules-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .rules-overlay.open { display: flex; }
+
+    .rules-modal {
+      background: #fff;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,.25);
+      animation: modal-pop .22s cubic-bezier(.34,1.56,.64,1);
+      overflow: hidden;
+    }
+    @keyframes modal-pop {
+      from { opacity: 0; transform: scale(.92) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .rules-header {
+      background: linear-gradient(135deg, var(--nfl) 0%, #1a3060 100%);
+      padding: 22px 24px 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .rules-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--nfl-hi), #f5c842);
+    }
+    .rules-league-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 4px;
+    }
+    .rules-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -.01em;
+    }
+    .rules-close {
+      background: rgba(255,255,255,.12);
+      border: none;
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: rgba(255,255,255,.7);
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: background .15s, color .15s;
+      margin-top: 2px;
+    }
+    .rules-close:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+    .rules-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+    .rules-body h3 {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 20px 0 8px;
+    }
+    .rules-body h3:first-child { margin-top: 0; }
+    .rules-body p { margin-bottom: 10px; color: var(--text-dim); }
+    .rules-body ul { padding-left: 18px; margin-bottom: 10px; }
+    .rules-body ul li { margin-bottom: 5px; }
+    .rules-body strong { color: var(--text); font-weight: 700; }
+
+    /* ── Future card ── */
+    .card-future {
+      background: rgba(255,255,255,.5);
+      border: 2px dashed #c8d4e8;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+      min-height: 280px;
+      gap: 10px;
+      transition: border-color .2s, background .2s;
+    }
+    .card-future:hover { border-color: #a0b0d0; background: rgba(255,255,255,.75); }
+    .future-icon { font-size: 34px; color: #b0c0d8; }
+    .card-future h3 { font-size: 16px; font-weight: 800; color: var(--text-dim); }
+    .card-future p  { font-size: 13px; color: var(--text-muted); max-width: 200px; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--header-bg);
+      border-top: 1px solid rgba(232,160,32,.2);
+      padding: 28px 24px;
+      text-align: center;
+    }
+    footer p { font-size: 12px; color: #2a3a54; letter-spacing: .05em; }
+    footer span { color: #e8a020; }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .logo-name { font-size: 20px; }
+      .header-pill { display: none; }
+      .hero { padding: 48px 16px 44px; }
+      .hero-stats { gap: 24px; }
+      .leagues-section { padding: 36px 16px 52px; }
+      .leagues-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-<!-- ============================================================
-     HEADER
-     ============================================================ -->
-<header>
-  <div class="header-inner">
-    <div class="logo">2026 <span>NFL</span> League — II</div>
-    <nav id="main-nav">
-      <a href="standings.html">Standings</a>
-      <a href="matchups.html">Matchups</a>
-    </nav>
-  </div>
-</header>
-
-<!-- ============================================================
-     HERO
-     ============================================================ -->
 <section class="hero">
-  <h1>2026 DK <span>NFL</span> League - II</h1>
-  <div class="stat-row">
-    <div class="stat-box">
-      <div class="num" id="stat-total">32</div>
-      <div class="lbl">Total Teams</div>
-    </div>
-    <div class="stat-box">
-      <div class="num" id="stat-available">—</div>
-      <div class="lbl">Available</div>
-    </div>
-    <div class="stat-box">
-      <div class="num" id="stat-claimed">—</div>
-      <div class="lbl">Claimed</div>
-    </div>
-    <div class="stat-box">
-      <div class="num">8</div>
-      <div class="lbl">Divisions</div>
-    </div>
-  </div>
-  <a href="payment.html" style="display:inline-block;margin-top:28px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:6px 16px;border-radius:var(--radius);text-decoration:none;transition:background .15s,color .15s" onmouseover="this.style.background='var(--accent)';this.style.color='#000'" onmouseout="this.style.background='transparent';this.style.color='var(--accent)'">💰 Payment Info</a>
+  <h1>Vinkster's <span class="gold-line">Leagues</span></h1>
+  <p class="hero-sub">Your hub for all competitive fantasy sports</p>
 </section>
 
-<!-- ============================================================
-     TEAM SIGNUP
-     ============================================================ -->
-<section class="section container" id="signup">
-  <h2 class="block-heading">Claim a Team</h2>
-  <div class="conf-grid" id="conference-grid">
-    <!-- Populated by JS -->
-    <p style="color:var(--muted);font-family:var(--font-mono);font-size:13px">Loading league data…</p>
+<section class="leagues-section">
+
+  <p class="section-label">Football</p>
+
+  <div class="leagues-grid">
+
+    <!-- ── NFL League I ── -->
+    <div class="league-card card-nfl">
+      <div class="card-banner banner-nfl">
+        <span class="sport-icon">🏈</span>
+        <span class="card-badge badge-reg">Registration Open</span>
+      </div>
+      <div class="card-body">
+        <p class="card-sport">National Football League</p>
+        <h2 class="card-name">2026 DK NFL League - I</h2>
+        <p class="card-season">2026 Season · DraftKings Main Slate</p>
+        <div class="card-stats-grid">
+          <div class="stat-item">
+            <span class="stat-num">32</span>
+            <span class="stat-label">Teams</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" id="nfl1-open">—</span>
+            <span class="stat-label">Open Spots</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">18</span>
+            <span class="stat-label">Weeks</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">$125</span>
+            <span class="stat-label">Entry Fee</span>
+          </div>
+        </div>
+        <hr class="card-divider" />
+        <div class="card-actions">
+          <a href="https://vinkster15.github.io/2026-NFL-League/" class="btn-enter btn-nfl" id="nfl1-claim-btn">
+            Claim a Spot <span class="btn-arrow">→</span>
+          </a>
+          <button class="btn-rules" onclick="openRules('nfl1')">📋 League Concept</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NFL League II ── -->
+    <div class="league-card card-nfl">
+      <div class="card-banner banner-nfl">
+        <span class="sport-icon">🏈</span>
+        <span class="card-badge badge-reg">Registration Open</span>
+      </div>
+      <div class="card-body">
+        <p class="card-sport">National Football League</p>
+        <h2 class="card-name">2026 DK NFL League - II</h2>
+        <p class="card-season">2026 Season · DraftKings Main Slate</p>
+        <div class="card-stats-grid">
+          <div class="stat-item">
+            <span class="stat-num">32</span>
+            <span class="stat-label">Teams</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" id="nfl2-open">—</span>
+            <span class="stat-label">Open Spots</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">18</span>
+            <span class="stat-label">Weeks</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">$125</span>
+            <span class="stat-label">Entry Fee</span>
+          </div>
+        </div>
+        <hr class="card-divider" />
+        <div class="card-actions">
+          <a href="https://vinkster15.github.io/2026-NFL-League---II/" class="btn-enter btn-nfl" id="nfl2-claim-btn">
+            Claim a Spot <span class="btn-arrow">→</span>
+          </a>
+          <button class="btn-rules" onclick="openRules('nfl2')">📋 League Concept</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NFL Guillotine League ── -->
+    <div class="league-card card-nfl">
+      <div class="card-banner banner-nfl">
+        <span class="sport-icon">⚔️</span>
+        <span class="card-badge badge-reg">Registration Open</span>
+      </div>
+      <div class="card-body">
+        <p class="card-sport">National Football League</p>
+        <h2 class="card-name" style="font-size:17px;">2026 NFL Guillotine League (PPR)</h2>
+        <p class="card-season">2026 Season · Yahoo Fantasy · Weekly Elimination</p>
+        <p class="card-season" style="margin-top:4px;color:#8899aa;font-size:15px;font-weight:700;">🐢 Slow Draft — starts when league fills</p>
+        <div class="card-stats-grid">
+          <div class="stat-item">
+            <span class="stat-num">18</span>
+            <span class="stat-label">Teams</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" id="guill-open">—</span>
+            <span class="stat-label">Open Spots</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">18</span>
+            <span class="stat-label">Weeks</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">$100</span>
+            <span class="stat-label">Entry Fee</span>
+          </div>
+        </div>
+        <hr class="card-divider" />
+        <div class="card-actions">
+          <a href="https://vinkster15.github.io/2026-NFL-Guillotine-League/" class="btn-enter btn-nfl" id="guill-claim-btn">
+            Claim a Spot <span class="btn-arrow">→</span>
+          </a>
+          <button class="btn-rules" onclick="openRules('guillotine')">📋 League Concept</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Vinkster's Yahoo League ── -->
+    <div class="league-card card-nfl">
+      <div class="card-banner banner-nfl">
+        <span class="sport-icon">🏈</span>
+        <span class="card-badge badge-reg">Registration Open</span>
+      </div>
+      <div class="card-body">
+        <p class="card-sport">National Football League</p>
+        <h2 class="card-name">Vinkster's 12-man PPR League</h2>
+        <p class="card-season">2026 Season · Yahoo Fantasy</p>
+        <div class="card-stats-grid">
+          <div class="stat-item">
+            <span class="stat-num">12</span>
+            <span class="stat-label">Teams</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">$200</span>
+            <span class="stat-label">Entry Fee</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">17</span>
+            <span class="stat-label">Weeks</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">Aug 30</span>
+            <span class="stat-label">Draft · 7PM ET</span>
+          </div>
+        </div>
+        <hr class="card-divider" />
+        <div class="card-actions">
+          <a href="https://football.fantasysports.yahoo.com/f1/195495/invitation?key=3fafeadf24557cdf&soc_trk=lnk&ikey=ca0fa73502c2bb35" target="_blank" class="btn-enter btn-nfl">
+            Join on Yahoo <span class="btn-arrow">→</span>
+          </a>
+          <button class="btn-rules" onclick="openRules('yahoo')">📋 League Concept</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /football grid -->
+
+  <p class="section-label" style="margin-top:48px">Other Sports</p>
+
+  <div class="leagues-grid">
+
+    <!-- ── Golf League ── -->
+    <div class="league-card card-golf">
+      <div class="card-banner banner-golf">
+        <span class="sport-icon">⛳</span>
+        <span class="card-badge badge-live"><span class="live-dot"></span> Live</span>
+      </div>
+      <div class="card-body">
+        <p class="card-sport">Professional Golf</p>
+        <h2 class="card-name">Golf League 2026</h2>
+        <p class="card-season">PGA Tour · FedEx Cup Style</p>
+        <div class="card-stats">
+          <div class="stat-item">
+            <span class="stat-num">53</span>
+            <span class="stat-label">Players</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">30+</span>
+            <span class="stat-label">Events</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">$10,600</span>
+            <span class="stat-label">Prize Pool</span>
+          </div>
+        </div>
+        <hr class="card-divider" />
+        <a href="https://vinkster15.github.io/Golf-League-2026/" class="btn-enter btn-golf">
+          View League <span class="btn-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── World Cup Pool ── -->
+    <div class="league-card card-wc">
+      <div class="card-banner banner-wc">
+        <span class="sport-icon">🌍</span>
+        <span class="card-badge badge-live"><span class="live-dot"></span> Live</span>
+      </div>
+      <div class="card-body">
+        <p class="card-sport">International Soccer</p>
+        <h2 class="card-name">World Cup Pool</h2>
+        <p class="card-season">June 11 – July 19, 2026 · USA / Canada / Mexico</p>
+        <div class="card-stats">
+          <div class="stat-item">
+            <span class="stat-num">40</span>
+            <span class="stat-label">Entrants</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">$1,000</span>
+            <span class="stat-label">Prize Pool</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">$25</span>
+            <span class="stat-label">Entry Fee</span>
+          </div>
+        </div>
+        <hr class="card-divider" />
+        <a href="https://vinkster15.github.io/World-Cup-Pool/" class="btn-enter btn-wc">
+          View Pool <span class="btn-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Future placeholder ── -->
+    <div class="card-future">
+      <div class="future-icon">＋</div>
+      <h3>More Leagues Coming</h3>
+      <p>New competitions will be added here as they launch.</p>
+    </div>
+
   </div>
 </section>
 
-<!-- ============================================================
-     FOOTER
-     ============================================================ -->
+<!-- ── Rules Modal ── -->
+<div class="rules-overlay" id="rules-overlay" onclick="handleOverlayClick(event)">
+  <div class="rules-modal">
+    <div class="rules-header">
+      <div>
+        <div class="rules-league-name" id="rules-league-name">League</div>
+        <div class="rules-title" id="rules-title">League Concept</div>
+      </div>
+      <button class="rules-close" onclick="closeRules()">✕</button>
+    </div>
+    <div class="rules-body" id="rules-body"></div>
+  </div>
+</div>
+
 <footer>
-  <p>2026 DK NFL League - II · Hosted on GitHub Pages</p>
-  <p style="margin-top:6px">
-    Data source: <a href="#" id="footer-sheet-link" target="_blank">Google Sheets</a>
-    &nbsp;·&nbsp; Built with plain HTML / CSS / JS
-    &nbsp;·&nbsp; <a href="#" onclick="activateCommissioner(); return false;" style="color:var(--border);text-decoration:none">⚙</a>
-  </p>
+  <p>© 2026 <span>Vinkster's 12-man PPR Leagues</span> · All rights reserved</p>
 </footer>
 
-<!-- ============================================================
-     SIGNUP MODAL
-     ============================================================ -->
-<div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <div class="modal">
-    <h3 id="modal-title">Claim Team</h3>
-    <p class="modal-sub" id="modal-team-label">— Select a team —</p>
-
-    <label for="input-name">Name *</label>
-    <input id="input-name" type="text" placeholder="Your full name" maxlength="32" autocomplete="off" />
-
-    <label for="input-dk">DraftKings Username * <span style="font-size:10px;color:var(--red);font-weight:400">⚠ Must match DK exactly</span></label>
-    <input id="input-dk" type="text" placeholder="Your exact DraftKings username" maxlength="32" autocomplete="off" />
-    <p style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:4px;margin-bottom:12px;line-height:1.5">This is used to match your lineup each week. It must be spelled and capitalized exactly as it appears on DraftKings.</p>
-
-    <label for="input-email">Email * <span style="font-size:10px;color:var(--muted)">(private · never shown publicly)</span></label>
-    <input id="input-email" type="email" placeholder="you@example.com" autocomplete="off" />
-
-    <label for="input-pin">
-      4-Digit PIN *
-      <span style="font-size:10px;color:var(--muted)">(you'll need this to release the team later)</span>
-    </label>
-    <input
-      id="input-pin"
-      type="password"
-      inputmode="numeric"
-      maxlength="4"
-      placeholder="••••"
-      autocomplete="off"
-    />
-
-    <p class="privacy-note">
-      Your name and email are private and never shown publicly. Your DraftKings username
-      will appear in the standings. Your PIN lets you release your team if needed.
-    </p>
-
-    <p id="modal-error"></p>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-submit" onclick="handleSubmit()">Claim Team</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     UNCLAIM CONFIRMATION MODAL
-     A PIN set at claim time is required to release a team.
-     This prevents other users from unclaiming someone else's team.
-     ============================================================ -->
-<div class="modal-backdrop" id="unclaim-backdrop" role="dialog" aria-modal="true" aria-labelledby="unclaim-title">
-  <div class="modal" style="border-top-color: var(--red);">
-    <h3 id="unclaim-title" style="color:var(--red)">Release Team</h3>
-    <p class="modal-sub" id="unclaim-team-label">— team name —</p>
-
-    <p style="font-size:14px;color:var(--text-dim);margin-bottom:16px;line-height:1.6">
-      Enter the <strong style="color:var(--text)">4-digit PIN</strong> you chose when you claimed
-      this team. This releases the team so someone else can claim it.
-    </p>
-
-    <div id="unclaim-pin-wrap">
-      <label for="unclaim-pin">PIN *</label>
-      <input
-        id="unclaim-pin"
-        type="password"
-        inputmode="numeric"
-        maxlength="4"
-        placeholder="••••"
-        autocomplete="off"
-      />
-    </div>
-
-    <p id="unclaim-error" style="font-size:12px;color:var(--red);font-family:var(--font-mono);min-height:16px;margin-bottom:12px;"></p>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeUnclaimModal()">Cancel</button>
-      <button
-        id="unclaim-submit-btn"
-        class="btn-submit"
-        style="background:var(--red);color:#fff;"
-        onclick="handleUnclaim()"
-      >Release Team</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     TOAST NOTIFICATION
-     ============================================================ -->
-<div id="toast" role="status" aria-live="polite"></div>
-
-
-<!-- ============================================================
-     JAVASCRIPT
-     ============================================================ -->
 <script>
-  // =============================================================
-  //  CONFIGURATION
-  //  ——————————————
-  //  Replace the URLs below with your real Google Sheets links
-  //  when you're ready to go live.
-  //
-  //  HOW TO PUBLISH A GOOGLE SHEET AS JSON:
-  //  1. Open your Google Sheet
-  //  2. File → Share → Publish to web
-  //  3. Choose "Comma-separated values (.csv)" for a sheet tab
-  //  4. Copy the published URL
-  //  5. Use a CSV-to-JSON converter or a Google Apps Script
-  //     Web App (see APPS_SCRIPT_URL below) to serve JSON.
-  //
-  //  HOW TO DEPLOY A GOOGLE APPS SCRIPT WEB APP FOR SIGNUPS:
-  //  1. In the Sheet → Extensions → Apps Script
-  //  2. Write a doPost(e) function that appends a row to a sheet
-  //  3. Deploy → New deployment → Web app → "Anyone" can access
-  //  4. Paste the web app URL into APPS_SCRIPT_URL below
-  // =============================================================
-  const GOOGLE_SHEETS_CONFIG = {
-    // ─── Paste your deployed Apps Script Web App URL here ───────────────────────
-    // After deploying (see apps-script.gs setup instructions), replace this URL.
-    // The same URL handles claims, releases, and standings — all via action param.
-    APPS_SCRIPT_URL:  'https://script.google.com/macros/s/AKfycbzV3tQ-IPYW3ljDjEMIBdF3uLhnJhyyVOMhf23vOVqvv4M1bHBiMf8uWQFw1-U5nCl_7A/exec',
+  const NFL1_GAS  = 'https://script.google.com/macros/s/AKfycbzoqxulglJqFpqwdLzKDBs0XtbvcXCyqqTVmT0memzlb4a7xA3Jesi6CepJYwXtvK9WlQ/exec';
+  const NFL2_GAS  = 'https://script.google.com/macros/s/AKfycbzV3tQ-IPYW3ljDjEMIBdF3uLhnJhyyVOMhf23vOVqvv4M1bHBiMf8uWQFw1-U5nCl_7A/exec';
+  const GUILL_GAS = 'https://script.google.com/macros/s/AKfycbyKtYR8enNHTXAcVd3xZA6768rzRZ2yq7k_HzOVyMf4UX24YjYnviUEhxN8lLEf4Y0/exec';
 
-    // Link shown in footer (optional — your Google Sheet's shareable URL)
-    SHEET_PUBLIC_URL: 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit',
-  };
-
-  // Returns true if a real Apps Script URL has been configured
-  function isLive() {
-    return GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL.indexOf('YOUR_SCRIPT_ID') === -1;
+  async function loadNFLOpenSpots() {
+    const el = document.getElementById('nfl1-open');
+    if (!el) return;
+    try {
+      const res  = await fetch(`${NFL1_GAS}?action=claims`);
+      const data = await res.json();
+      if (data.success && data.claims) {
+        const claimed = Object.keys(data.claims).length;
+        const open    = Math.max(0, 32 - claimed);
+        el.textContent = open;
+      } else {
+        el.textContent = 32;
+      }
+    } catch (e) {
+      el.textContent = 32;
+      console.warn('Could not fetch NFL League I claims:', e);
+    }
   }
 
-  // =============================================================
-  //  MOCK DATA
-  //  ——————————
-  //  This is the source of truth for the MVP until you hook up
-  //  a real Google Sheet. Edit team names and standings here.
-  //  The structure mirrors what loadLeagueData() will eventually
-  //  parse from the Google Sheet CSV.
-  // =============================================================
-  const MOCK_LEAGUE = {
-    conferences: [
-      { id: 'afc', name: 'AFC', fullName: 'American Football Conference' },
-      { id: 'nfc', name: 'NFC', fullName: 'National Football Conference' },
-    ],
-    divisions: [
-      { id: 'afc-north', confId: 'afc', name: 'North' },
-      { id: 'afc-south', confId: 'afc', name: 'South' },
-      { id: 'afc-east',  confId: 'afc', name: 'East'  },
-      { id: 'afc-west',  confId: 'afc', name: 'West'  },
-      { id: 'nfc-north', confId: 'nfc', name: 'North' },
-      { id: 'nfc-south', confId: 'nfc', name: 'South' },
-      { id: 'nfc-east',  confId: 'nfc', name: 'East'  },
-      { id: 'nfc-west',  confId: 'nfc', name: 'West'  },
-    ],
-    teams: [
-      // AFC North
-      { id: 't01', divId: 'afc-north', name: 'Baltimore Ravens'     },
-      { id: 't02', divId: 'afc-north', name: 'Cincinnati Bengals'   },
-      { id: 't03', divId: 'afc-north', name: 'Cleveland Browns'     },
-      { id: 't04', divId: 'afc-north', name: 'Pittsburgh Steelers'  },
-      // AFC South
-      { id: 't05', divId: 'afc-south', name: 'Houston Texans'       },
-      { id: 't06', divId: 'afc-south', name: 'Indianapolis Colts'   },
-      { id: 't07', divId: 'afc-south', name: 'Jacksonville Jaguars' },
-      { id: 't08', divId: 'afc-south', name: 'Tennessee Titans'     },
-      // AFC East
-      { id: 't09', divId: 'afc-east',  name: 'Buffalo Bills'        },
-      { id: 't10', divId: 'afc-east',  name: 'Miami Dolphins'       },
-      { id: 't11', divId: 'afc-east',  name: 'New England Patriots' },
-      { id: 't12', divId: 'afc-east',  name: 'New York Jets'        },
-      // AFC West
-      { id: 't13', divId: 'afc-west',  name: 'Denver Broncos'       },
-      { id: 't14', divId: 'afc-west',  name: 'Kansas City Chiefs'   },
-      { id: 't15', divId: 'afc-west',  name: 'Las Vegas Raiders'    },
-      { id: 't16', divId: 'afc-west',  name: 'Los Angeles Chargers' },
-      // NFC North
-      { id: 't17', divId: 'nfc-north', name: 'Chicago Bears'        },
-      { id: 't18', divId: 'nfc-north', name: 'Detroit Lions'        },
-      { id: 't19', divId: 'nfc-north', name: 'Green Bay Packers'    },
-      { id: 't20', divId: 'nfc-north', name: 'Minnesota Vikings'    },
-      // NFC South
-      { id: 't21', divId: 'nfc-south', name: 'Atlanta Falcons'      },
-      { id: 't22', divId: 'nfc-south', name: 'Carolina Panthers'    },
-      { id: 't23', divId: 'nfc-south', name: 'New Orleans Saints'   },
-      { id: 't24', divId: 'nfc-south', name: 'Tampa Bay Buccaneers' },
-      // NFC East
-      { id: 't25', divId: 'nfc-east',  name: 'Dallas Cowboys'       },
-      { id: 't26', divId: 'nfc-east',  name: 'New York Giants'      },
-      { id: 't27', divId: 'nfc-east',  name: 'Philadelphia Eagles'  },
-      { id: 't28', divId: 'nfc-east',  name: 'Washington Commanders'},
-      // NFC West
-      { id: 't29', divId: 'nfc-west',  name: 'Arizona Cardinals'    },
-      { id: 't30', divId: 'nfc-west',  name: 'Los Angeles Rams'     },
-      { id: 't31', divId: 'nfc-west',  name: 'San Francisco 49ers'  },
-      { id: 't32', divId: 'nfc-west',  name: 'Seattle Seahawks'     },
-    ],
-    standings: [],
-  };
 
-  // =============================================================
-  //  TEAM ABBREVIATIONS
-  // =============================================================
-  const TEAM_ABBR = {
-    'Baltimore Ravens':      'BAL',
-    'Cincinnati Bengals':    'CIN',
-    'Cleveland Browns':      'CLE',
-    'Pittsburgh Steelers':   'PIT',
-    'Houston Texans':        'HOU',
-    'Indianapolis Colts':    'IND',
-    'Jacksonville Jaguars':  'JAC',
-    'Tennessee Titans':      'TEN',
-    'Buffalo Bills':         'BUF',
-    'Miami Dolphins':        'MIA',
-    'New England Patriots':  'NE',
-    'New York Jets':         'NYJ',
-    'Denver Broncos':        'DEN',
-    'Kansas City Chiefs':    'KC',
-    'Las Vegas Raiders':     'LV',
-    'Los Angeles Chargers':  'LAC',
-    'Chicago Bears':         'CHI',
-    'Detroit Lions':         'DET',
-    'Green Bay Packers':     'GB',
-    'Minnesota Vikings':     'MIN',
-    'Atlanta Falcons':       'ATL',
-    'Carolina Panthers':     'CAR',
-    'New Orleans Saints':    'NO',
-    'Tampa Bay Buccaneers':  'TB',
-    'Dallas Cowboys':        'DAL',
-    'New York Giants':       'NYG',
-    'Philadelphia Eagles':   'PHI',
-    'Washington Commanders': 'WAS',
-    'Arizona Cardinals':     'ARI',
-    'Los Angeles Rams':      'LAR',
-    'San Francisco 49ers':   'SF',
-    'Seattle Seahawks':      'SEA',
-  };
-
-  // =============================================================
-  //  RUNTIME STATE
-  //  —————————————
-  //  claimedTeams: { teamId → displayName }
-  //  Stored in localStorage so claims survive page refreshes.
-  //  In production this would be fetched from Google Sheets.
-  // =============================================================
-  let leagueData   = null; // populated by loadLeagueData()
-  let claimedTeams = {};   // { teamId → name }         — from localStorage + Google Sheets
-  let claimPins    = {};   // { teamId → hashedPIN }    — stored only in localStorage (never sent publicly)
-  window._claimUsernames = {}; // { teamId → draftKingsUsername } — from localStorage + Google Sheets
-
-  // Which team is currently being claimed / unclaimed (used by modals)
-  let pendingTeamId        = null;
-  let pendingUnclaimTeamId = null;
-
-  // Which team THIS browser has claimed (null = none yet)
-  window._myTeamId = null;
-
-  // =============================================================
-  //  GOOGLE SHEETS INTEGRATION
-  //  ——————————————————————————
-  //  All reads and writes go through the single Apps Script URL.
-  //  When APPS_SCRIPT_URL still contains 'YOUR_SCRIPT_ID', the
-  //  app runs in offline/localStorage-only mode automatically.
-  // =============================================================
-
-  /**
-   * loadLeagueData()
-   * ----------------
-   * League structure (conferences, divisions, teams) is static — it lives
-   * in MOCK_LEAGUE below and never needs to be fetched. Only standings
-   * and claims are dynamic.
-   */
-  async function loadLeagueData() {
-    return MOCK_LEAGUE;
+  async function loadNFL2OpenSpots() {
+    const el = document.getElementById('nfl2-open');
+    if (!el) return;
+    try {
+      const res  = await fetch(`${NFL2_GAS}?action=claims`);
+      const data = await res.json();
+      if (data.success && data.claims) {
+        const claimed = Object.keys(data.claims).length;
+        const open    = Math.max(0, 32 - claimed);
+        el.textContent = open;
+      } else {
+        el.textContent = 32;
+      }
+    } catch (e) {
+      el.textContent = 32;
+      console.warn('Could not fetch NFL League II claims:', e);
+    }
   }
 
-  /**
-   * loadClaims()
-   * ------------
-   * Fetches which teams are currently claimed from Google Sheets.
-   * Populates `claimedTeams` so every user sees the same state.
-   * Falls back to localStorage when offline or not yet configured.
-   */
-  async function loadClaims() {
-    if (!isLive()) {
-      // Offline mode — use whatever is in localStorage
-      claimedTeams = loadClaimedTeamsFromStorage();
-      claimPins    = loadPinsFromStorage();
+  async function loadGuillotineOpenSpots() {
+    const el = document.getElementById('guill-open');
+    if (!el || GUILL_GAS === 'YOUR_GUILLOTINE_GAS_URL_HERE') {
+      if (el) el.textContent = 18;
       return;
     }
-
     try {
-      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=claims');
+      const res  = await fetch(`${GUILL_GAS}?action=claims`);
       const data = await res.json();
-
-      if (data.success) {
-        claimedTeams           = data.claims    || {};
-        window._claimUsernames = data.usernames || {};
-        // PINs are never returned from the server — keep local copy for UX only.
-        claimPins = loadPinsFromStorage();
+      if (data.success && data.claims) {
+        const claimed = Object.keys(data.claims).length;
+        const open    = Math.max(0, 18 - claimed);
+        el.textContent = open;
       } else {
-        console.warn('loadClaims: server error —', data.error);
-        claimedTeams           = loadClaimedTeamsFromStorage();
-        claimPins              = loadPinsFromStorage();
-        window._claimUsernames = loadUsernamesFromStorage();
+        el.textContent = 18;
       }
-    } catch (err) {
-      console.warn('loadClaims: fetch failed, using localStorage fallback', err);
-      claimedTeams           = loadClaimedTeamsFromStorage();
-      claimPins              = loadPinsFromStorage();
-      window._claimUsernames = loadUsernamesFromStorage();
+    } catch (e) {
+      el.textContent = 18;
+      console.warn('Could not fetch Guillotine League claims:', e);
     }
   }
 
-  /**
-   * submitClaim(teamId, displayName, email, hashedPin)
-   * ---------------------------------------------------
-   * Posts a claim to the Apps Script Web App, which writes it to the
-   * Claims sheet so all users see it immediately.
-   * Falls back to localStorage-only mode when not configured.
-   */
-  async function submitClaim(teamId, name, draftKingsUsername, email, hashedPin) {
-    if (!isLive()) {
-      await new Promise(r => setTimeout(r, 400));
-      return true;
-    }
+  loadNFLOpenSpots();
+  loadNFL2OpenSpots();
+  loadGuillotineOpenSpots();
 
-    try {
-      const params = new URLSearchParams({ action: 'claim', teamId, name, draftKingsUsername, email, hashedPin });
-      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?' + params);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Claim failed');
-      return true;
-    } catch (err) {
-      console.error('submitClaim error:', err);
-      return false;
-    }
-  }
-
-  /**
-   * submitRelease(teamId, hashedPin)
-   * --------------------------------
-   * Asks the Apps Script to delete the claim row after verifying the PIN.
-   * Falls back to localStorage-only mode when not configured.
-   */
-  async function submitRelease(teamId, hashedPin) {
-    if (!isLive()) return true;
-
-    try {
-      const params = new URLSearchParams({
-        action: 'release',
-        teamId,
-        hashedPin,
-        commissioner: window._commissionerActive ? COMMISSIONER_HASH : '',
-      });
-      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?' + params);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Release failed');
-      return true;
-    } catch (err) {
-      console.error('submitRelease error:', err);
-      return false;
-    }
-  }
-
-  // =============================================================
-  //  LOCAL PERSISTENCE
-  //  —————————————————
-  //  Saves/loads claimed teams to localStorage so the UI
-  //  stays consistent across refreshes in the MVP.
-  //  In production the source of truth is Google Sheets.
-  // =============================================================
-
-  function saveClaimedTeams() {
-    try {
-      localStorage.setItem('gfl2_claimed',   JSON.stringify(claimedTeams));
-      localStorage.setItem('gfl2_pins',      JSON.stringify(claimPins));
-      localStorage.setItem('gfl2_usernames', JSON.stringify(window._claimUsernames));
-    }
-    catch (e) { /* localStorage unavailable */ }
-  }
-
-  function loadClaimedTeamsFromStorage() {
-    try {
-      const raw = localStorage.getItem('gfl2_claimed');
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
-  }
-
-  function loadPinsFromStorage() {
-    try {
-      const raw = localStorage.getItem('gfl2_pins');
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
-  }
-
-  function loadUsernamesFromStorage() {
-    try {
-      const raw = localStorage.getItem('gfl2_usernames');
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
-  }
-
-  // =============================================================
-  //  RENDER — LEAGUE STRUCTURE
-  // =============================================================
-
-  function renderLeague(data) {
-    const grid = document.getElementById('conference-grid');
-    grid.innerHTML = '';
-
-    for (const conf of data.conferences) {
-      const divs = data.divisions.filter(d => d.confId === conf.id);
-
-      const card = document.createElement('div');
-      card.className = 'conf-card';
-      card.innerHTML = `
-        <div class="conf-header">
-          ${conf.name} <small>${conf.fullName}</small>
-        </div>
-      `;
-
-      for (const div of divs) {
-        const teams = data.teams.filter(t => t.divId === div.id);
-
-        const block = document.createElement('div');
-        block.className = 'division-block';
-
-        const nameEl = document.createElement('div');
-        nameEl.className = 'division-name';
-        nameEl.textContent = `${conf.name} ${div.name}`;
-        block.appendChild(nameEl);
-
-        const list = document.createElement('div');
-        list.className = 'team-list';
-
-        for (const team of teams) {
-          list.appendChild(buildTeamRow(team));
+  // ── Swap "Claim a Spot" → "View League" if user has already signed up ──
+  function updateClaimedButtons() {
+    const btnMap = {
+      'nfl1_2026_claimed':  { id: 'nfl1-claim-btn',  label: 'View League' },
+      'nfl2_2026_claimed':  { id: 'nfl2-claim-btn',  label: 'View League' },
+      'guill_2026_claimed': { id: 'guill-claim-btn', label: 'View League' }
+    };
+    for (const [key, cfg] of Object.entries(btnMap)) {
+      try {
+        if (localStorage.getItem(key)) {
+          const btn = document.getElementById(cfg.id);
+          if (btn) btn.innerHTML = `${cfg.label} <span class="btn-arrow">→</span>`;
         }
-
-        block.appendChild(list);
-        card.appendChild(block);
-      }
-
-      grid.appendChild(card);
-    }
-
-    updateHeroStats(data);
-  }
-
-  function buildTeamRow(team) {
-    const isClaimed = !!claimedTeams[team.id];
-    const row = document.createElement('div');
-    row.className = 'team-row';
-    row.dataset.teamId = team.id;
-
-    const displayName = isClaimed
-      ? `${team.name}${allTeamsClaimed() ? ` <span style="color:var(--accent);font-size:12px">[${escHtml(claimedTeams[team.id])}]</span>` : ''}`
-      : team.name;
-
-    row.innerHTML = `
-      <span class="team-name${isClaimed ? ' claimed' : ''}">${displayName}</span>
-      <span class="badge ${isClaimed ? 'badge-claimed' : 'badge-available'}">
-        ${isClaimed ? 'Claimed' : 'Available'}
-      </span>
-      ${isClaimed && (claimPins[team.id] || window._commissionerActive)
-        ? `<button
-             class="btn-unclaim"
-             title="Release this team"
-             onclick="openUnclaimModal('${team.id}', '${escHtml(team.name)}')"
-           >✕ Release</button>`
-        : (!isClaimed && !window._myTeamId)
-        ? `<button
-             class="btn-claim"
-             data-team-id="${team.id}"
-             data-team-name="${escHtml(team.name)}"
-             onclick="openModal('${team.id}', '${escHtml(team.name)}')"
-           >Claim</button>`
-        : ''
-      }
-    `;
-
-    return row;
-  }
-
-  function refreshTeamRow(teamId) {
-    // Re-render only the changed row without full re-render
-    const existing = document.querySelector(`.team-row[data-team-id="${teamId}"]`);
-    if (!existing) return;
-    const team = leagueData.teams.find(t => t.id === teamId);
-    if (!team) return;
-    const newRow = buildTeamRow(team);
-    existing.replaceWith(newRow);
-  }
-
-  // =============================================================
-  //  COMMISSIONER MODE
-  //  ————————————————
-  //  Activated via the hidden footer link. Allows releasing any
-  //  team regardless of which browser claimed it.
-  // =============================================================
-  window._commissionerActive = false;
-  const COMMISSIONER_HASH = 'vp19'; // simpleHash('0162')
-
-  function activateCommissioner() {
-    const pin = prompt('Enter commissioner PIN:');
-    if (!pin) return;
-    if (simpleHash(pin) === COMMISSIONER_HASH) {
-      window._commissionerActive = true;
-      renderLeague(leagueData);
-      showToast('Commissioner mode active — all Release buttons visible');
-    } else {
-      alert('Incorrect PIN.');
+      } catch(e) {}
     }
   }
+  updateClaimedButtons();
 
-  // Returns true only when all 32 teams are claimed — names stay hidden until then
-  function allTeamsClaimed() {
-    if (!leagueData) return false;
-    return Object.keys(window._claimedTeams || claimedTeams).length >= leagueData.teams.length;
+  // ── Rules modal ──────────────────────────────────────────────
+  const RULES = {
+    nfl1: {
+      league: '2026 DK NFL League - I',
+      title:  'League Concept',
+      body:   `
+        <p>A fantasy league built around the real NFL structure — 32 teams split across 2 conferences and 8 divisions, just like the actual league.</p>
+        <h3>How It Works</h3>
+        <p>Each manager claims one NFL team for the season. Every week, you draft a new lineup on <strong>DraftKings</strong> using that week's main slate <strong>(1PM &amp; 4PM games only)</strong> — your DK score becomes your team's score for the week.</p>
+        <h3>Schedule</h3>
+        <p><strong>18 weeks total.</strong> Head-to-head matchups run through <strong>Week 13</strong> (regular season), with some double-matchup weeks built in to fill the schedule.</p>
+        <h3>Playoffs</h3>
+        <p><strong>Weeks 14–17.</strong> All 8 division winners qualify automatically, plus the top <strong>3 wild cards</strong> from each conference — 14 teams total compete for the championship.</p>
+        <p style="margin-top:10px;font-size:12px;color:var(--text-muted)">* Total payouts are spread amongst the <strong style="color:var(--text)">top 8 finishing teams</strong> in the playoffs — you must survive the Wild Card round to be in the money.</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-muted)">* Participate in all 18 regular season weeks and receive a <strong style="color:var(--text)">$25 rebate</strong> — an incentive to stay active all season long.</p>
+      `
+    },
+    nfl2: {
+      league: '2026 DK NFL League - II',
+      title:  'League Concept',
+      body:   `
+        <p>A fantasy league built around the real NFL structure — 32 teams split across 2 conferences and 8 divisions, just like the actual league.</p>
+        <h3>How It Works</h3>
+        <p>Each manager claims one NFL team for the season. Every week, you draft a new lineup on <strong>DraftKings</strong> using that week's main slate <strong>(1PM &amp; 4PM games only)</strong> — your DK score becomes your team's score for the week.</p>
+        <h3>Schedule</h3>
+        <p><strong>18 weeks total.</strong> Head-to-head matchups run through <strong>Week 13</strong> (regular season), with some double-matchup weeks built in to fill the schedule.</p>
+        <h3>Playoffs</h3>
+        <p><strong>Weeks 14–17.</strong> All 8 division winners qualify automatically, plus the top <strong>3 wild cards</strong> from each conference — 14 teams total compete for the championship.</p>
+        <p style="margin-top:10px;font-size:12px;color:var(--text-muted)">* Total payouts are spread amongst the <strong style="color:var(--text)">top 8 finishing teams</strong> in the playoffs — you must survive the Wild Card round to be in the money.</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-muted)">* Participate in all 18 regular season weeks and receive a <strong style="color:var(--text)">$25 rebate</strong> — an incentive to stay active all season long.</p>
+      `
+    },
+    yahoo: {
+      league: "Vinkster's 12-man PPR League",
+      title:  'League Concept',
+      body:   `
+        <p>A classic 12-man PPR snake draft league on Yahoo Fantasy. Pick your team, manage your roster, compete all season.</p>
+        <h3>Roster</h3>
+        <p>1 QB · 2 RB · 2 WR · 1 TE · 1 FLEX · 1 K · 1 DEF · 6 BENCH · 2 IR</p>
+        <h3>Format</h3>
+        <p><strong>PPR scoring</strong> (1 point per reception). Standard head-to-head weekly matchups over a 17-week season.</p>
+        <h3>Draft</h3>
+        <p><strong>Snake draft — August 30 at 7PM ET</strong> on Yahoo Fantasy. Sign up via the invite link and you'll be set when draft day arrives.</p>
+        <h3>Entry</h3>
+        <p><strong>$200 buy-in.</strong> Payment details will be provided after you join.</p>
+      `
+    },
+    guillotine: {
+      league: '2026 NFL Guillotine League',
+      title:  'League Concept',
+      body:   `
+        <p>An 18-team survivor league. One team gets eliminated every week — don't be last and you're still alive. Simple as that.</p>
+        <h3>How It Works</h3>
+        <p>Teams are built through a <strong>snake draft</strong>. Each week is a <strong>total points</strong> competition — no head-to-head matchups, just your score vs. the field.</p>
+        <h3>The Guillotine</h3>
+        <p>The <strong>last place team each week is eliminated</strong> and their entire roster is dropped. Every remaining manager then <strong>bids on those freed players.</strong></p>
+        <h3>Payouts</h3>
+        <p>Final <strong>4 managers get paid</strong> — and it's heavily top-loaded.</p>
+      `
+    }
+  };
+
+  function openRules(key) {
+    const r = RULES[key];
+    if (!r) return;
+    document.getElementById('rules-league-name').textContent = r.league;
+    document.getElementById('rules-title').textContent       = r.title;
+    document.getElementById('rules-body').innerHTML          = r.body;
+    document.getElementById('rules-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
 
-  function updateHeroStats(data) {
-    const total   = data.teams.length;
-    const claimed = Object.keys(claimedTeams).length;
-    document.getElementById('stat-total').textContent     = total;
-    document.getElementById('stat-available').textContent = total - claimed;
-    document.getElementById('stat-claimed').textContent   = claimed;
-
-    // Hide the signup section and nav tab once all teams are claimed
-    const signupSection = document.getElementById('signup');
-    const navSignup     = document.getElementById('nav-signup');
-    const mainNav       = document.getElementById('main-nav');
-    if (claimed >= total) {
-      if (signupSection) signupSection.style.display = 'none';
-      if (navSignup)     navSignup.style.display     = 'none';
-      if (mainNav)       mainNav.classList.remove('nav-has-signup');
-    } else {
-      if (signupSection) signupSection.style.display = '';
-      if (navSignup)     navSignup.style.display     = '';
-      if (mainNav)       mainNav.classList.add('nav-has-signup');
-    }
-
-    // "You already claimed a team" notice
-    const _grid = document.getElementById('conference-grid');
-    if (_grid) {
-      let _banner = document.getElementById('my-team-banner');
-      if (!_banner) {
-        _banner = document.createElement('p');
-        _banner.id = 'my-team-banner';
-        _banner.style.cssText = 'font-family:var(--font-mono);font-size:13px;color:#2ecc71;padding:8px 12px;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25);border-radius:4px;margin-bottom:16px;display:none';
-        _grid.parentNode.insertBefore(_banner, _grid);
-      }
-      if (window._myTeamId) {
-        const _myT = data.teams.find(t => t.id === window._myTeamId);
-        _banner.textContent = _myT
-          ? `✓ You've claimed the ${_myT.name} — you cannot claim another team in this league`
-          : '✓ You already have a team claimed in this league';
-        _banner.style.display = 'block';
-      } else {
-        _banner.style.display = 'none';
-      }
-    }
+  function closeRules() {
+    document.getElementById('rules-overlay').classList.remove('open');
+    document.body.style.overflow = '';
   }
 
-  // =============================================================
-  //  MODAL — OPEN / CLOSE / SUBMIT
-  // =============================================================
-
-  function openModal(teamId, teamName) {
-    pendingTeamId = teamId;
-    document.getElementById('modal-team-label').textContent = 'Claiming: ' + teamName;
-    document.getElementById('input-name').value  = '';
-    document.getElementById('input-dk').value    = '';
-    document.getElementById('input-email').value = '';
-    document.getElementById('input-pin').value   = '';
-    document.getElementById('modal-error').textContent = '';
-    document.getElementById('modal-backdrop').classList.add('open');
-    document.getElementById('input-name').focus();
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('rules-overlay')) closeRules();
   }
 
-  function closeModal() {
-    document.getElementById('modal-backdrop').classList.remove('open');
-    pendingTeamId = null;
-  }
-
-  async function handleSubmit() {
-    const name  = document.getElementById('input-name').value.trim();
-    const dk    = document.getElementById('input-dk').value.trim();
-    const email = document.getElementById('input-email').value.trim();
-    const pin   = document.getElementById('input-pin').value.trim();
-    const errEl = document.getElementById('modal-error');
-
-    // Basic validation
-    if (!name) {
-      errEl.textContent = '⚠ Name is required.';
-      return;
-    }
-    if (!dk) {
-      errEl.textContent = '⚠ DraftKings Username is required.';
-      return;
-    }
-    if (!email) {
-      errEl.textContent = '⚠ Email is required.';
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errEl.textContent = '⚠ Please enter a valid email address.';
-      return;
-    }
-    if (!pin || !/^\d{4}$/.test(pin)) {
-      errEl.textContent = '⚠ PIN must be exactly 4 digits.';
-      return;
-    }
-    if (!pendingTeamId) {
-      errEl.textContent = '⚠ No team selected.';
-      return;
-    }
-    if (claimedTeams[pendingTeamId]) {
-      errEl.textContent = '⚠ This team was already claimed.';
-      return;
-    }
-
-    errEl.textContent = '';
-
-    // Disable submit while in-flight
-    const submitBtn = document.querySelector('.btn-submit');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting…';
-
-    const hashed = simpleHash(pin);
-    const ok = await submitClaim(pendingTeamId, name, dk, email, hashed);
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Claim Team';
-
-    if (ok) {
-      // Mirror in local state so the UI updates instantly
-      claimedTeams[pendingTeamId]          = name;
-      claimPins[pendingTeamId]             = hashed;
-      window._claimUsernames[pendingTeamId] = dk;
-      saveClaimedTeams();
-
-      // Lock this browser from claiming again + sync hub "Claim a Spot" → "View League"
-      window._myTeamId = pendingTeamId;
-      try { localStorage.setItem('nfl2_myTeamId', pendingTeamId); localStorage.setItem('nfl2_2026_claimed', 'true'); } catch(e) {}
-
-      // Update UI without full re-render
-      refreshTeamRow(pendingTeamId);
-      updateHeroStats(leagueData);
-
-      closeModal();
-      showToast(`✓ ${name} claimed the team!`);
-    } else {
-      errEl.textContent = '⚠ Submission failed — the team may already be claimed. Try refreshing.';
-    }
-  }
-
-  // Close modal on backdrop click
-  document.getElementById('modal-backdrop').addEventListener('click', function (e) {
-    if (e.target === this) closeModal();
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeRules();
   });
-
-  // Close modal on Escape key
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeModal(); closeUnclaimModal(); }
-  });
-
-  // =============================================================
-  //  UNCLAIM MODAL — OPEN / CLOSE / SUBMIT
-  // =============================================================
-
-  function openUnclaimModal(teamId, teamName) {
-    pendingUnclaimTeamId = teamId;
-    document.getElementById('unclaim-team-label').textContent = 'Releasing: ' + teamName;
-    document.getElementById('unclaim-pin').value   = '';
-    document.getElementById('unclaim-error').textContent = '';
-
-    // Hide PIN field for commissioner — they don't need it
-    const pinWrap = document.getElementById('unclaim-pin-wrap');
-    if (pinWrap) pinWrap.style.display = window._commissionerActive ? 'none' : 'block';
-
-    document.getElementById('unclaim-backdrop').classList.add('open');
-    if (!window._commissionerActive) document.getElementById('unclaim-pin').focus();
-  }
-
-  function closeUnclaimModal() {
-    document.getElementById('unclaim-backdrop').classList.remove('open');
-    pendingUnclaimTeamId = null;
-  }
-
-  async function handleUnclaim() {
-    const pin   = document.getElementById('unclaim-pin').value.trim();
-    const errEl = document.getElementById('unclaim-error');
-
-    if (!pin || !/^\d{4}$/.test(pin)) {
-      errEl.textContent = '⚠ Please enter your 4-digit PIN.';
-      return;
-    }
-    if (!pendingUnclaimTeamId) {
-      errEl.textContent = '⚠ No team selected.';
-      return;
-    }
-
-    const hashed     = simpleHash(pin);
-    const storedHash = claimPins[pendingUnclaimTeamId];
-
-    // Commissioner bypasses PIN verification entirely
-    if (!window._commissionerActive) {
-      if (!isLive() && storedHash && storedHash !== hashed) {
-        errEl.textContent = '⚠ Incorrect PIN. Try again.';
-        document.getElementById('unclaim-pin').value = '';
-        document.getElementById('unclaim-pin').focus();
-        return;
-      }
-    }
-
-    // Disable button while in-flight
-    const releaseBtn = document.getElementById('unclaim-submit-btn');
-    releaseBtn.disabled = true;
-    releaseBtn.textContent = 'Releasing…';
-
-    const ok = await submitRelease(pendingUnclaimTeamId, hashed);
-
-    releaseBtn.disabled = false;
-    releaseBtn.textContent = 'Release Team';
-
-    if (ok) {
-      // Mirror in local state
-      const releasedTeamId = pendingUnclaimTeamId;
-      delete claimedTeams[releasedTeamId];
-      delete claimPins[releasedTeamId];
-      saveClaimedTeams();
-
-      // If this browser released its own team, unlock claiming
-      if (releasedTeamId === window._myTeamId) {
-        window._myTeamId = null;
-        try { localStorage.removeItem('nfl2_myTeamId'); localStorage.removeItem('nfl2_2026_claimed'); } catch(e) {}
-      }
-
-      refreshTeamRow(releasedTeamId);
-      updateHeroStats(leagueData);
-
-      closeUnclaimModal();
-      showToast('✓ Team released — it\'s available again!');
-    } else {
-      errEl.textContent = '⚠ Incorrect PIN or server error. Try again.';
-      document.getElementById('unclaim-pin').value = '';
-      document.getElementById('unclaim-pin').focus();
-    }
-  }
-
-  // Close unclaim modal on backdrop click
-  document.getElementById('unclaim-backdrop').addEventListener('click', function (e) {
-    if (e.target === this) closeUnclaimModal();
-  });
-
-  // =============================================================
-  //  PIN HELPER
-  //  ————————————
-  //  A lightweight non-cryptographic hash — good enough for a
-  //  leisure MVP where we just want to deter casual mischief.
-  //  Do not use this for real security-sensitive applications.
-  // =============================================================
-  function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
-    }
-    return hash.toString(36);
-  }
-
-  // =============================================================
-  //  TOAST NOTIFICATION
-  // =============================================================
-
-  let toastTimer;
-  function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
-  }
-
-  // =============================================================
-  //  HELPER UTILITIES
-  // =============================================================
-
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  // =============================================================
-  //  BOOT — runs on page load
-  // =============================================================
-
-  async function boot() {
-    // 1. Load static league structure
-    leagueData = await loadLeagueData();
-
-    // 2. Fetch claims from Google Sheets (or localStorage in offline mode)
-    await loadClaims();
-
-    // Restore which team this browser claimed (auto-clear if team was since released)
-    const _mt = localStorage.getItem('nfl2_myTeamId');
-    if (_mt && claimedTeams[_mt]) {
-      window._myTeamId = _mt;
-    } else if (_mt) {
-      // Team was released — unlock this browser
-      try { localStorage.removeItem('nfl2_myTeamId'); localStorage.removeItem('nfl2_2026_claimed'); } catch(e) {}
-    }
-
-    // 3. Render conference/division/team grid
-    renderLeague(leagueData);
-
-    // 4. Update footer link
-    document.getElementById('footer-sheet-link').href = GOOGLE_SHEETS_CONFIG.SHEET_PUBLIC_URL;
-  }
-
-
-  boot();
-
-  /*
-    ============================================================
-    WEEKLY UPDATE WORKFLOW
-    ============================================================
-    Each week:
-    1. Open your Google Sheet
-    2. Update the Standings tab with new W/L records
-    3. Visit standings.html and click ↻ Refresh to see updated data.
-    4. No code changes or GitHub push needed for standings updates.
-
-    For structural changes (teams, divisions):
-    1. Update MOCK_LEAGUE above (or your Google Sheet source)
-    2. Commit and push all .html files to GitHub
-    3. GitHub Pages serves the update automatically.
-    ============================================================
-  */
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
