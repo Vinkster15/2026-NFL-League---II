@@ -92,8 +92,9 @@
     .row-name { font-size: 13px; font-weight: 600; color: var(--text-dim); flex: 1; }
     .row-owner { font-size: 13px; font-weight: 700; color: var(--gold); }
     .row-status { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-    .status-avail { background: rgba(46,204,113,.12); color: var(--green); border: 1px solid rgba(46,204,113,.25); }
-    .status-taken { background: rgba(100,100,100,.15); color: var(--muted); border: 1px solid rgba(100,100,100,.2); }
+    .status-avail   { background: rgba(46,204,113,.12); color: var(--green); border: 1px solid rgba(46,204,113,.25); }
+    .status-claimed { background: rgba(100,100,100,.15); color: var(--muted); border: 1px solid rgba(100,100,100,.2); }
+    .row-hidden { font-size: 12px; color: var(--muted); font-style: italic; }
     .btn-claim { font-family: var(--font); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; background: var(--gold); color: #000; border: none; border-radius: var(--radius); padding: 6px 14px; cursor: pointer; transition: background .15s; white-space: nowrap; flex-shrink: 0; }
     .btn-claim:hover { background: #c47010; }
     .btn-claim:disabled { background: #333; color: var(--muted); cursor: not-allowed; }
@@ -423,8 +424,11 @@
     }
   }
 
+  function getMyTeam() { try { return localStorage.getItem('nfl2_my_team'); } catch(e) { return null; } }
+
   function buildTeamRow(team) {
     const isClaimed = !!claimedTeams[team.id];
+    const isMyTeam  = getMyTeam() === team.id;
     const abbr      = TEAM_ABBR[team.name] || team.name;
     const dk        = claimUsernames[team.id] || '';
     const row       = document.createElement('div');
@@ -432,11 +436,13 @@
     row.innerHTML   = `
       <span class="row-abbr">${escHtml(abbr)}</span>
       <span class="row-name">${escHtml(team.name)}</span>
-      ${isClaimed && dk ? `<span class="row-owner">${escHtml(dk)}</span>` : ''}
-      <span class="row-status ${isClaimed ? 'status-taken' : 'status-avail'}">${isClaimed ? 'Taken' : 'Available'}</span>
+      ${isClaimed && allClaimed() && dk ? `<span class="row-owner">${escHtml(dk)}</span>` : ''}
+      <span class="row-status ${isClaimed ? 'status-claimed' : 'status-avail'}">${isClaimed ? 'Claimed' : 'Available'}</span>
       ${!isClaimed
         ? `<button class="btn-claim" onclick="openModal('${team.id}')">Claim →</button>`
-        : `<button class="btn-release" onclick="openReleaseModal('${team.id}')">Release</button>`}`;
+        : isMyTeam
+          ? `<button class="btn-release" onclick="openReleaseModal('${team.id}')">Release</button>`
+          : ''}`;
     return row;
   }
 
@@ -495,6 +501,7 @@
       if (data.success) {
         delete claimedTeams[selectedReleaseTeamId];
         delete claimUsernames[selectedReleaseTeamId];
+        try { localStorage.removeItem('nfl2_my_team'); } catch(e) {}
         closeReleaseModal();
         updateHero();
         buildClaimView();
@@ -537,6 +544,7 @@
       if (data.success) {
         claimedTeams[selectedTeamId]   = name;
         claimUsernames[selectedTeamId] = dk;
+        try { localStorage.setItem('nfl2_my_team', selectedTeamId); } catch(e) {}
         closeModal();
         updateHero();
         if (allClaimed()) {
