@@ -650,7 +650,10 @@
     const standings = await loadStandings();
     leagueData.standings = standings;
 
-
+    currentView = 'division';
+    document.querySelectorAll('.view-tab').forEach(b => {
+      b.classList.toggle('active', b.textContent.trim() === 'Division');
+    });
     renderStandings(leagueData.standings);
   }
 
