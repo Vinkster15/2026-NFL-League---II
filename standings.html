@@ -357,9 +357,9 @@
   <h2 class="block-heading">League Standings</h2>
 
   <div class="view-tabs">
-    <button class="view-tab active" onclick="switchView('league', this)">League</button>
+    <button class="view-tab" onclick="switchView('league', this)">League</button>
     <button class="view-tab" onclick="switchView('conference', this)">Conference</button>
-    <button class="view-tab" onclick="switchView('division', this)">Division</button>
+    <button class="view-tab active" onclick="switchView('division', this)">Division</button>
   </div>
 
   <div class="standings-grid" id="standings-grid">
@@ -537,7 +537,7 @@
   }
 
   // ── Current view ───────────────────────────────────────────────
-  let currentView = 'league';
+  let currentView = 'division';
 
   function switchView(view, btn) {
     currentView = view;
