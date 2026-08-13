@@ -241,10 +241,6 @@
       <input class="form-input" id="f-pin" type="password" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*" />
       <p class="form-hint">Numbers only. Remember this — you'll need it to release your team.</p>
     </div>
-    <div class="form-group">
-      <label class="form-label" for="f-pin2">Confirm PIN</label>
-      <input class="form-input" id="f-pin2" type="password" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*" />
-    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
       <button class="btn-submit" onclick="submitClaim()">Claim Team</button>
@@ -453,7 +449,7 @@
     selectedTeamId = teamId;
     document.getElementById('modal-title').textContent = 'Claim the ' + team.name;
     document.getElementById('modal-sub').textContent   = 'Fill in your details to lock in this team.';
-    ['f-name','f-dk','f-email','f-pin','f-pin2'].forEach(id => document.getElementById(id).value = '');
+    ['f-name','f-dk','f-email','f-pin'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('modal-error').className = 'modal-error';
     document.getElementById('modal').classList.add('open');
     document.getElementById('f-name').focus();
@@ -521,7 +517,6 @@
     const dk    = document.getElementById('f-dk').value.trim();
     const email = document.getElementById('f-email').value.trim();
     const pin   = document.getElementById('f-pin').value.trim();
-    const pin2  = document.getElementById('f-pin2').value.trim();
     const errEl = document.getElementById('modal-error');
 
     function showErr(msg) { errEl.textContent = msg; errEl.className = 'modal-error show'; }
@@ -530,7 +525,6 @@
     if (!dk)    return showErr('Please enter your DraftKings username.');
     if (!email || !email.includes('@')) return showErr('Please enter a valid email.');
     if (!/^\d{4}$/.test(pin)) return showErr('PIN must be exactly 4 numbers.');
-    if (pin !== pin2) return showErr('PINs do not match.');
 
     errEl.className = 'modal-error';
     const btn = document.querySelector('.btn-submit');
