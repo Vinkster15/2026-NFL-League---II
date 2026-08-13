@@ -532,7 +532,7 @@
     btn.disabled = true;
 
     try {
-      const url = `${GAS_URL}?action=claim&teamId=${encodeURIComponent(selectedTeamId)}&name=${encodeURIComponent(name)}&dkUser=${encodeURIComponent(dk)}&email=${encodeURIComponent(email)}&pin=${encodeURIComponent(simpleHash(pin))}`;
+      const url = `${GAS_URL}?action=claim&teamId=${encodeURIComponent(selectedTeamId)}&name=${encodeURIComponent(name)}&draftKingsUsername=${encodeURIComponent(dk)}&email=${encodeURIComponent(email)}&hashedPin=${encodeURIComponent(simpleHash(pin))}`;
       const res  = await fetch(url);
       const data = await res.json();
       if (data.success) {
