@@ -694,25 +694,41 @@
     return Math.min(weeksElapsed + 2, 18);
   }
 
-  function populateWeekFilter(keepWeek) {
-    const weeks = [...new Set(window._matchups.map(m => Number(m.week)))].sort((a, b) => a - b);
-    const sel   = document.getElementById('matchups-week-filter');
+  // Combined week groups for the dropdown (weeks 5&6, 7&8, 9&10, 15&16, 17&18 share a slate)
+  const WEEK_GROUPS = [
+    { label: 'Week 1',        weeks: [1]      },
+    { label: 'Week 2',        weeks: [2]      },
+    { label: 'Week 3',        weeks: [3]      },
+    { label: 'Week 4',        weeks: [4]      },
+    { label: 'Weeks 5 & 6',   weeks: [5, 6]   },
+    { label: 'Weeks 7 & 8',   weeks: [7, 8]   },
+    { label: 'Weeks 9 & 10',  weeks: [9, 10]  },
+    { label: 'Week 11',       weeks: [11]     },
+    { label: 'Week 12',       weeks: [12]     },
+    { label: 'Week 13',       weeks: [13]     },
+    { label: 'Week 14',       weeks: [14]     },
+    { label: 'Weeks 15 & 16', weeks: [15, 16] },
+    { label: 'Weeks 17 & 18', weeks: [17, 18] },
+  ];
+
+  // Maps an NFL week number (1-18) to its WEEK_GROUPS index
+  function getCurrentWeekGroup() {
+    const w = getCurrentWeek();
+    const MAP = { 1:0, 2:1, 3:2, 4:3, 5:4, 6:4, 7:5, 8:5, 9:6, 10:6, 11:7, 12:8, 13:9, 14:10, 15:11, 16:11, 17:12, 18:12 };
+    return MAP[w] !== undefined ? MAP[w] : 0;
+  }
+
+  function populateWeekFilter(keepGroupIdx) {
+    const sel = document.getElementById('matchups-week-filter');
     sel.innerHTML = '';
-
-    if (weeks.length === 0) {
-      sel.innerHTML = '<option value="">No matchups yet</option>';
-      return;
-    }
-
-    weeks.forEach(w => {
-      const opt       = document.createElement('option');
-      opt.value       = w;
-      opt.textContent = 'Week ' + w;
+    WEEK_GROUPS.forEach((g, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = g.label;
       sel.appendChild(opt);
     });
-
-    const target = keepWeek ? Number(keepWeek) : getCurrentWeek();
-    sel.value = weeks.includes(target) ? target : weeks[weeks.length - 1];
+    const target = keepGroupIdx !== undefined ? Number(keepGroupIdx) : getCurrentWeekGroup();
+    sel.value = (target >= 0 && target < WEEK_GROUPS.length) ? target : 0;
   }
 
   function buildLineupSideHTML(teamName, isHome) {
@@ -763,87 +779,111 @@
     matchRow.classList.toggle('open', !isOpen);
   }
 
-  function renderByeBox(selWeek) {
+  function renderByeBox(group) {
     const byeBox = document.getElementById('bye-box');
     if (!byeBox) return;
-    const weekGames = window._matchups.filter(m => Number(m.week) === selWeek);
-    const playingTeams = new Set();
-    weekGames.forEach(m => { playingTeams.add(m.homeTeam); playingTeams.add(m.awayTeam); });
-    const byeTeams = MOCK_LEAGUE.teams.filter(t => !playingTeams.has(t.name));
-    if (byeTeams.length === 0) { byeBox.style.display = 'none'; return; }
-    const pillsHTML = byeTeams.map(t => {
-      const abbr = TEAM_ABBR[t.name] || t.name;
-      const dk   = allTeamsClaimed() ? (window._claimUsernames[t.id] || null) : null;
-      return dk
-        ? `<div class="bye-pill"><span class="bye-user">${escHtml(dk)}</span> · <span class="bye-abbr">${abbr}</span></div>`
-        : `<div class="bye-pill"><span class="bye-abbr">${abbr}</span></div>`;
-    }).join('');
-    byeBox.innerHTML = `<div class="bye-box-header">Bye Week</div><div class="bye-pills">${pillsHTML}</div>`;
+    const sections = [];
+    group.weeks.forEach(w => {
+      const weekGames = window._matchups.filter(m => Number(m.week) === w);
+      const playingTeams = new Set();
+      weekGames.forEach(m => { playingTeams.add(m.homeTeam); playingTeams.add(m.awayTeam); });
+      const byeTeams = MOCK_LEAGUE.teams.filter(t => !playingTeams.has(t.name));
+      if (byeTeams.length === 0) return;
+      const pillsHTML = byeTeams.map(t => {
+        const abbr = TEAM_ABBR[t.name] || t.name;
+        const dk   = allTeamsClaimed() ? (window._claimUsernames[t.id] || null) : null;
+        return dk
+          ? `<div class="bye-pill"><span class="bye-user">${escHtml(dk)}</span> · <span class="bye-abbr">${abbr}</span></div>`
+          : `<div class="bye-pill"><span class="bye-abbr">${abbr}</span></div>`;
+      }).join('');
+      const header = group.weeks.length > 1 ? `Week ${w} Byes` : 'Bye Week';
+      sections.push(`<div class="bye-box-header">${header}</div><div class="bye-pills">${pillsHTML}</div>`);
+    });
+    if (sections.length === 0) { byeBox.style.display = 'none'; return; }
+    byeBox.innerHTML = sections.join('');
     byeBox.style.display = 'block';
   }
 
   function renderMatchups() {
-    const sel     = document.getElementById('matchups-week-filter');
-    const selWeek = Number(sel.value);
-    const tbody   = document.getElementById('matchups-tbody');
-    const week    = window._matchups.filter(m => Number(m.week) === selWeek);
+    const sel      = document.getElementById('matchups-week-filter');
+    const groupIdx = Number(sel.value);
+    const group    = WEEK_GROUPS[groupIdx] || WEEK_GROUPS[0];
+    const tbody    = document.getElementById('matchups-tbody');
 
     tbody.innerHTML = '';
 
-    if (week.length === 0) {
+    // Check if any matchups exist for this group
+    const totalMatchups = group.weeks.reduce((n, w) =>
+      n + window._matchups.filter(m => Number(m.week) === w).length, 0);
+
+    if (totalMatchups === 0) {
       tbody.innerHTML = '<tr><td colspan="3" style="padding:24px 16px;color:var(--muted);font-size:13px">No matchups found for this week.</td></tr>';
-      renderByeBox(selWeek);
+      renderByeBox(group);
       return;
     }
 
-    week.forEach((m, i) => {
-      const played   = m.homeScore !== null && m.awayScore !== null;
-      const homeWins = played && m.homeScore > m.awayScore;
-      const awayWins = played && m.awayScore > m.homeScore;
+    let globalIdx = 0;
+    group.weeks.forEach(w => {
+      const weekMatchups = window._matchups.filter(m => Number(m.week) === w);
+      if (weekMatchups.length === 0) return;
 
-      const homeAbbr = TEAM_ABBR[m.homeTeam] || m.homeTeam;
-      const awayAbbr = TEAM_ABBR[m.awayTeam] || m.awayTeam;
-      const homeDK   = getPlayerForTeam(m.homeTeam);
-      const awayDK   = getPlayerForTeam(m.awayTeam);
+      // Week sub-header for combined groups (e.g. Weeks 5 & 6)
+      if (group.weeks.length > 1) {
+        const headerTr = document.createElement('tr');
+        headerTr.innerHTML = `<td colspan="3" style="padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)">Week ${w}</td>`;
+        tbody.appendChild(headerTr);
+      }
 
-      const homeRecord = getRecordForTeam(m.homeTeam);
-      const awayRecord = getRecordForTeam(m.awayTeam);
+      weekMatchups.forEach(m => {
+        const idx      = globalIdx++;
+        const played   = m.homeScore !== null && m.awayScore !== null;
+        const homeWins = played && m.homeScore > m.awayScore;
+        const awayWins = played && m.awayScore > m.homeScore;
 
-      const awayLabel = `<span class="team-abbr">${awayAbbr}</span><span class="dk-user">${awayDK ? escHtml(awayDK) : ''}</span><span class="record">${awayRecord}</span>`;
-      const homeLabel = `<span class="record">${homeRecord}</span><span class="dk-user">${homeDK ? escHtml(homeDK) : ''}</span><span class="team-abbr">${homeAbbr}</span>`;
+        const homeAbbr = TEAM_ABBR[m.homeTeam] || m.homeTeam;
+        const awayAbbr = TEAM_ABBR[m.awayTeam] || m.awayTeam;
+        const homeDK   = getPlayerForTeam(m.homeTeam);
+        const awayDK   = getPlayerForTeam(m.awayTeam);
 
-      const scoreCell = played
-        ? `<span style="color:${awayWins ? 'var(--green)' : 'var(--muted)'}">${m.awayScore}</span><span class="score-sep">–</span><span style="color:${homeWins ? 'var(--green)' : 'var(--muted)'}">${m.homeScore}</span><span class="chevron">▾</span>`
-        : `<span class="vs-label">VS</span><span class="chevron">▾</span>`;
+        const homeRecord = getRecordForTeam(m.homeTeam);
+        const awayRecord = getRecordForTeam(m.awayTeam);
 
-      // Main matchup row
-      const tr = document.createElement('tr');
-      tr.className = 'matchup-row';
-      tr.id = 'matchup-row-' + i;
-      tr.setAttribute('onclick', 'toggleLineup(' + i + ')');
-      tr.innerHTML = `
-        <td class="td-team td-away">${awayLabel}</td>
-        <td class="td-score">${scoreCell}</td>
-        <td class="td-team td-home">${homeLabel}</td>
-      `;
-      tbody.appendChild(tr);
+        const awayLabel = `<span class="team-abbr">${awayAbbr}</span><span class="dk-user">${awayDK ? escHtml(awayDK) : ''}</span><span class="record">${awayRecord}</span>`;
+        const homeLabel = `<span class="record">${homeRecord}</span><span class="dk-user">${homeDK ? escHtml(homeDK) : ''}</span><span class="team-abbr">${homeAbbr}</span>`;
 
-      // Expandable lineup detail row
-      const detailTr = document.createElement('tr');
-      detailTr.className = 'lineup-detail-row';
-      detailTr.id = 'lineup-row-' + i;
-      detailTr.innerHTML = `
-        <td colspan="3">
-          <div class="lineup-panel">
-            ${buildLineupSideHTML(m.awayTeam, false)}
-            ${buildLineupSideHTML(m.homeTeam, true)}
-          </div>
-        </td>
-      `;
-      tbody.appendChild(detailTr);
+        const scoreCell = played
+          ? `<span style="color:${awayWins ? 'var(--green)' : 'var(--muted)'}">${m.awayScore}</span><span class="score-sep">–</span><span style="color:${homeWins ? 'var(--green)' : 'var(--muted)'}">${m.homeScore}</span><span class="chevron">▾</span>`
+          : `<span class="vs-label">VS</span><span class="chevron">▾</span>`;
+
+        // Main matchup row
+        const tr = document.createElement('tr');
+        tr.className = 'matchup-row';
+        tr.id = 'matchup-row-' + idx;
+        tr.setAttribute('onclick', 'toggleLineup(' + idx + ')');
+        tr.innerHTML = `
+          <td class="td-team td-away">${awayLabel}</td>
+          <td class="td-score">${scoreCell}</td>
+          <td class="td-team td-home">${homeLabel}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // Expandable lineup detail row
+        const detailTr = document.createElement('tr');
+        detailTr.className = 'lineup-detail-row';
+        detailTr.id = 'lineup-row-' + idx;
+        detailTr.innerHTML = `
+          <td colspan="3">
+            <div class="lineup-panel">
+              ${buildLineupSideHTML(m.awayTeam, false)}
+              ${buildLineupSideHTML(m.homeTeam, true)}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(detailTr);
+      });
     });
 
-    renderByeBox(selWeek);
+    renderByeBox(group);
   }
 
   async function refreshMatchups() {

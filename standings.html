@@ -321,6 +321,50 @@
     .standings-card-header.conf-afc { color: #c0392b; }
     .standings-card-header.conf-nfc { color: #1a5276; }
   
+    /* ── Points leaderboard ── */
+    #points-view { display: none; }
+    .points-table-wrap {
+      max-width: 660px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .points-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .points-table th {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .points-table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .points-table tr:last-child td { border-bottom: none; }
+    .points-table td:not(:first-child):not(:nth-child(2)) {
+      text-align: right;
+      font-family: var(--font-mono);
+    }
+    .points-table th:not(:first-child):not(:nth-child(2)) { text-align: right; }
+    .points-table tr:hover td { background: rgba(255,255,255,.025); }
+    .pts-rank { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-right: 6px; }
+    .pts-user { color: #e8a020; font-weight: 700; }
+    .pts-abbr { color: var(--text-dim); font-size: 11px; margin-left: 4px; }
+    .pts-total { color: var(--accent); font-size: 14px; font-weight: 700; }
+    .pts-empty { padding: 32px 14px; text-align: center; color: var(--muted); font-size: 13px; }
+
     /* ── Claim button & Available badge — gold ── */
     .btn-claim { background: #e8a020 !important; color: #000 !important; }
     .btn-claim:hover { background: #c47010 !important; }
@@ -360,10 +404,29 @@
     <button class="view-tab" onclick="switchView('league', this)">League</button>
     <button class="view-tab" onclick="switchView('conference', this)">Conference</button>
     <button class="view-tab active" onclick="switchView('division', this)">Division</button>
+    <button class="view-tab" onclick="switchView('points', this)">Points</button>
   </div>
 
   <div class="standings-grid" id="standings-grid">
     <p style="color:var(--muted);font-family:var(--font-mono);font-size:13px">Loading standings…</p>
+  </div>
+
+  <div id="points-view" style="display:none">
+    <div class="points-table-wrap">
+      <table class="points-table">
+        <thead><tr>
+          <th>#</th>
+          <th>Player / Team</th>
+          <th style="text-align:right">Total Pts</th>
+          <th style="text-align:right">Avg/Wk</th>
+          <th style="text-align:right">Best Wk</th>
+          <th style="text-align:right">Wks</th>
+        </tr></thead>
+        <tbody id="points-tbody">
+          <tr><td colspan="6" class="pts-empty">Season stats appear after Week 1 is finalized.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
 
@@ -474,6 +537,7 @@
   // ── Runtime state ──────────────────────────────────────────────
   let leagueData = null;
   let claimedTeams = {};
+  let seasonStats = [];
   window._claimUsernames = {};
 
   function allTeamsClaimed() {
@@ -536,6 +600,51 @@
     return MOCK_LEAGUE.standings;
   }
 
+  async function loadSeasonStats() {
+    if (!isLive()) return [];
+    try {
+      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=seasonstats');
+      const data = await res.json();
+      return (data.success && data.seasonStats) ? data.seasonStats : [];
+    } catch (err) {
+      console.warn('loadSeasonStats failed', err);
+      return [];
+    }
+  }
+
+  function renderPointsLeaderboard() {
+    const tbody = document.getElementById('points-tbody');
+    if (!tbody) return;
+    if (!seasonStats || seasonStats.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="pts-empty">Season stats appear after Week 1 is finalized.</td></tr>';
+      return;
+    }
+    const agg = {};
+    seasonStats.forEach(function(row) {
+      if (!agg[row.teamId]) agg[row.teamId] = { teamId: row.teamId, teamName: row.teamName, total: 0, best: 0, weeks: 0 };
+      agg[row.teamId].total += row.points;
+      agg[row.teamId].best   = Math.max(agg[row.teamId].best, row.points);
+      agg[row.teamId].weeks += 1;
+    });
+    const rows = Object.values(agg).sort((a, b) => b.total - a.total);
+    tbody.innerHTML = rows.map((r, i) => {
+      const abbr = TEAM_ABBR[r.teamName] || r.teamName;
+      const dk   = window._claimUsernames && window._claimUsernames[r.teamId];
+      const avg  = r.weeks > 0 ? (r.total / r.weeks).toFixed(1) : '0.0';
+      const name = dk
+        ? `<span class="pts-user">${escHtml(dk)}</span><span class="pts-abbr">${abbr}</span>`
+        : `<span style="color:var(--text-dim)">${abbr}</span>`;
+      return `<tr>
+        <td><span class="pts-rank">${i + 1}</span></td>
+        <td>${name}</td>
+        <td class="pts-total">${r.total.toFixed(1)}</td>
+        <td>${avg}</td>
+        <td>${r.best.toFixed(1)}</td>
+        <td>${r.weeks}</td>
+      </tr>`;
+    }).join('');
+  }
+
   // ── Current view ───────────────────────────────────────────────
   let currentView = 'division';
 
@@ -543,7 +652,11 @@
     currentView = view;
     document.querySelectorAll('.view-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    renderStandings(leagueData.standings);
+    const isPoints = view === 'points';
+    document.getElementById('standings-grid').style.display = isPoints ? 'none' : '';
+    document.getElementById('points-view').style.display    = isPoints ? ''     : 'none';
+    if (isPoints) renderPointsLeaderboard();
+    else          renderStandings(leagueData.standings);
   }
 
   // ── Shared: build a table card ─────────────────────────────────
@@ -647,8 +760,9 @@
   async function boot() {
     leagueData = MOCK_LEAGUE;
     await loadClaims();
-    const standings = await loadStandings();
+    const [standings, stats] = await Promise.all([loadStandings(), loadSeasonStats()]);
     leagueData.standings = standings;
+    seasonStats = stats;
 
     currentView = 'division';
     document.querySelectorAll('.view-tab').forEach(b => {
