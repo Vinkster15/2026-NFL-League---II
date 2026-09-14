@@ -618,6 +618,32 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
   }
 
+  // ── Bootstrap cache (sessionStorage, 3-min TTL) ───────────────
+  const _CACHE_KEY = 'gfl2_boot';
+  const _CACHE_TTL = 3 * 60 * 1000;
+  function _cacheLoad() {
+    try {
+      const r = sessionStorage.getItem(_CACHE_KEY);
+      if (!r) return null;
+      const { ts, d } = JSON.parse(r);
+      return Date.now() - ts < _CACHE_TTL ? d : null;
+    } catch(e) { return null; }
+  }
+  function _cacheSave(d) {
+    try { sessionStorage.setItem(_CACHE_KEY, JSON.stringify({ ts: Date.now(), d })); } catch(e) {}
+  }
+  function _applyBoot(d) {
+    claimedTeams           = d.claims    || {};
+    window._claimUsernames = d.usernames || {};
+    standings              = d.standings || [];
+    window._matchups       = d.matchups  || [];
+    if (d.lineups && d.week) window._lineups[d.week] = d.lineups;
+  }
+  function _fetchBoot(week) {
+    return fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=bootstrap&week=' + week)
+      .then(r => r.json());
+  }
+
   // ── Data loading ───────────────────────────────────────────────
   async function loadClaims() {
     if (!isLive()) {
@@ -627,29 +653,6 @@
         const rawU = localStorage.getItem('gfl2_usernames');
         window._claimUsernames = rawU ? JSON.parse(rawU) : {};
       } catch (e) {}
-      return;
-    }
-    try {
-      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=claims');
-      const data = await res.json();
-      if (data.success) {
-        claimedTeams           = data.claims    || {};
-        window._claimUsernames = data.usernames || {};
-      }
-    } catch (err) {
-      console.warn('loadClaims failed', err);
-    }
-  }
-
-
-  async function loadStandings() {
-    try {
-      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=standings');
-      const data = await res.json();
-      return (data.success && data.standings && data.standings.length > 0) ? data.standings : [];
-    } catch (err) {
-      console.warn('loadStandings failed', err);
-      return [];
     }
   }
 
@@ -659,18 +662,6 @@
     const s = standings.find(x => x.teamId === team.id);
     if (!s) return '';
     return `(${s.wins}-${s.losses})`;
-  }
-
-  async function loadMatchups() {
-    if (!isLive()) return [];
-    try {
-      const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=matchups');
-      const data = await res.json();
-      return (data.success && data.matchups) ? data.matchups : [];
-    } catch (err) {
-      console.warn('loadMatchups failed', err);
-      return [];
-    }
   }
 
   // ── Render ─────────────────────────────────────────────────────
@@ -889,11 +880,14 @@
 
   async function refreshMatchups() {
     const prevWeek = document.getElementById('matchups-week-filter').value;
-    await loadClaims();
-    standings = await loadStandings();
-    window._matchups = await loadMatchups();
+    const week = getCurrentWeek();
+    try {
+      const d = await _fetchBoot(week);
+      if (d.success) { _cacheSave(d); _applyBoot(d); }
+    } catch(e) { console.warn('refresh failed', e); }
+    window._lineups = {}; // force reload lineups on next render
     populateWeekFilter(prevWeek);
-    renderMatchups();
+    await onWeekChange();
   }
 
 
@@ -918,17 +912,32 @@
 
   // ── Boot ───────────────────────────────────────────────────────
   async function boot() {
-    await loadClaims();
-    standings = await loadStandings();
-    window._matchups = await loadMatchups();
+    if (!isLive()) { await loadClaims(); populateWeekFilter(); renderMatchups(); return; }
 
-    populateWeekFilter();
-    renderMatchups();
+    const week  = getCurrentWeek();
+    const group = WEEK_GROUPS[getCurrentWeekGroup()] || WEEK_GROUPS[0];
+    const cached = _cacheLoad();
 
-    // Load lineups for current week group, then re-render so cards populate
-    const bootGroup = WEEK_GROUPS[getCurrentWeekGroup()] || WEEK_GROUPS[0];
-    await Promise.all(bootGroup.weeks.map(w => loadLineups(w)));
-    renderMatchups();
+    if (cached) {
+      // Render immediately from cache (instant)
+      _applyBoot(cached);
+      populateWeekFilter();
+      await Promise.all(group.weeks.map(w => loadLineups(w)));
+      renderMatchups();
+      // Revalidate in background
+      _fetchBoot(week).then(d => {
+        if (d.success) { _cacheSave(d); _applyBoot(d); renderMatchups(); }
+      }).catch(() => {});
+    } else {
+      // No cache: one request for everything
+      try {
+        const d = await _fetchBoot(week);
+        if (d.success) { _cacheSave(d); _applyBoot(d); }
+      } catch(e) { console.warn('boot fetch failed', e); }
+      populateWeekFilter();
+      await Promise.all(group.weeks.map(w => loadLineups(w)));
+      renderMatchups();
+    }
   }
 
   boot();
