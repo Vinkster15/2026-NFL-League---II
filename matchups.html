@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Matchups · 2026 DK NFL League - II</title>
+  <title>Matchups · 2026 DK NFL League - I</title>
 
 
   <style>
     :root {
-      --bg:          #030d06;
-      --surface:     #071a0d;
-      --surface2:    #0c2414;
-      --border:      #143d1c;
-      --border2:     #1c5228;
+      --bg:          #050e1f;
+      --surface:     #0a1a35;
+      --surface2:    #0f2448;
+      --border:      #1a3460;
+      --border2:     #244a80;
       --accent:      #ffffff;
-      --accent2:     #d0d8d4;
+      --accent2:     #d0d8e4;
       --green:       #2ecc71;
       --red:         #e74c3c;
-      --muted:       #5e7068;
+      --muted:       #607080;
       --text:        #ffffff;
-      --text-dim:    #9ab0a4;
+      --text-dim:    #a0b4c8;
       --heading:     #ffffff;
       --radius:      4px;
       --font-ui:     'Calibri', 'Candara', sans-serif;
@@ -92,7 +92,7 @@
     }
 
     .hero {
-      background: linear-gradient(135deg, #020a04 0%, #061510 55%, #0a2210 100%);
+      background: linear-gradient(135deg, #020a18 0%, #071530 55%, #0c2050 100%);
       border-bottom: 1px solid var(--border);
       padding: 40px 16px 32px;
       text-align: center;
@@ -401,7 +401,7 @@
       color: var(--muted);
     }
     footer a { color: var(--muted); text-decoration: underline; }
-  
+
     /* ── Bye week box ── */
     .bye-box {
       max-width: 780px;
@@ -458,7 +458,7 @@
 
 <header>
   <div class="header-inner">
-    <a class="logo" href="index.html" style="text-decoration:none">2026 <span>NFL</span> League — II</a>
+    <a class="logo" href="index.html" style="text-decoration:none">2026 <span>NFL</span> League</a>
     <nav>
       <a href="standings.html">Standings</a>
       <a href="matchups.html" class="active">Matchups</a>
@@ -498,14 +498,14 @@
 </section>
 
 <footer>
-  <p>2026 DK NFL League - II · <a href="index.html">Home</a></p>
+  <p>2026 DK NFL League - I · <a href="index.html">Home</a></p>
 </footer>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
   const GOOGLE_SHEETS_CONFIG = {
-    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzV3tQ-IPYW3ljDjEMIBdF3uLhnJhyyVOMhf23vOVqvv4M1bHBiMf8uWQFw1-U5nCl_7A/exec',
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzoqxulglJqFpqwdLzKDBs0XtbvcXCyqqTVmT0memzlb4a7xA3Jesi6CepJYwXtvK9WlQ/exec',
     SHEET_PUBLIC_URL: 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit',
   };
 
@@ -622,9 +622,9 @@
   async function loadClaims() {
     if (!isLive()) {
       try {
-        const raw = localStorage.getItem('gfl2_claimed');
+        const raw = localStorage.getItem('gfl_claimed');
         claimedTeams = raw ? JSON.parse(raw) : {};
-        const rawU = localStorage.getItem('gfl2_usernames');
+        const rawU = localStorage.getItem('gfl_usernames');
         window._claimUsernames = rawU ? JSON.parse(rawU) : {};
       } catch (e) {}
       return;
@@ -852,7 +852,7 @@
         const homeLabel = `<span class="record">${homeRecord}</span><span class="dk-user">${homeDK ? escHtml(homeDK) : ''}</span><span class="team-abbr">${homeAbbr}</span>`;
 
         const scoreCell = played
-          ? `<span style="color:${awayWins ? 'var(--green)' : 'var(--muted)'}">${m.awayScore}</span><span class="score-sep">–</span><span style="color:${homeWins ? 'var(--green)' : 'var(--muted)'}">${m.homeScore}</span><span class="chevron">▾</span>`
+          ? `<span style="color:${awayWins ? 'var(--green)' : 'var(--muted)'}">${Number(m.awayScore).toFixed(2)}</span><span class="score-sep">–</span><span style="color:${homeWins ? 'var(--green)' : 'var(--muted)'}">${Number(m.homeScore).toFixed(2)}</span><span class="chevron">▾</span>`
           : `<span class="vs-label">VS</span><span class="chevron">▾</span>`;
 
         // Main matchup row
@@ -913,8 +913,11 @@
     standings = await loadStandings();
     window._matchups = await loadMatchups();
 
-
     populateWeekFilter();
+    renderMatchups();
+
+    // Load lineups for the current week after rendering so cards populate
+    await loadLineups(getCurrentWeek());
     renderMatchups();
   }
 
