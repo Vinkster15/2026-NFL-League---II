@@ -910,7 +910,14 @@
     renderMatchups();
   }
 
-  // ── Fallback: fetch matchups directly if bootstrap didn't include them ──
+  // ── Fallbacks: fetch data directly if bootstrap didn't include it ─
+  async function _ensureStandings() {
+    if (standings.length > 0) return;
+    try {
+      const d = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=standings').then(r => r.json());
+      if (d.success && d.standings && d.standings.length) standings = d.standings;
+    } catch(e) { console.warn('standings fallback failed', e); }
+  }
   async function _ensureMatchups() {
     if (window._matchups.length > 0) return; // already have them
     try {
@@ -930,13 +937,13 @@
     if (cached) {
       // Render immediately from cache (instant)
       _applyBoot(cached);
-      await _ensureMatchups();
+      await Promise.all([_ensureStandings(), _ensureMatchups()]);
       populateWeekFilter();
       await Promise.all(group.weeks.map(w => loadLineups(w)));
       renderMatchups();
       // Revalidate in background
       _fetchBoot(week).then(async d => {
-        if (d.success) { _cacheSave(d); _applyBoot(d); await _ensureMatchups(); renderMatchups(); }
+        if (d.success) { _cacheSave(d); _applyBoot(d); await Promise.all([_ensureStandings(), _ensureMatchups()]); renderMatchups(); }
       }).catch(() => {});
     } else {
       // No cache: one request for everything
@@ -944,7 +951,7 @@
         const d = await _fetchBoot(week);
         if (d.success) { _cacheSave(d); _applyBoot(d); }
       } catch(e) { console.warn('boot fetch failed', e); }
-      await _ensureMatchups();
+      await Promise.all([_ensureStandings(), _ensureMatchups()]);
       populateWeekFilter();
       await Promise.all(group.weeks.map(w => loadLineups(w)));
       renderMatchups();
