@@ -554,12 +554,19 @@
   function _applyBoot(d) {
     claimedTeams           = d.claims    || {};
     window._claimUsernames = d.usernames || {};
-    leagueData.standings   = d.standings || MOCK_LEAGUE.standings;
-    allMatchups            = d.matchups  || [];
+    if (d.standings && d.standings.length) leagueData.standings = d.standings;
+    if (d.matchups  && d.matchups.length)  allMatchups          = d.matchups;
   }
   function _fetchBoot() {
     return fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=bootstrap')
       .then(r => r.json());
+  }
+  async function _ensureStandings() {
+    if (leagueData.standings !== MOCK_LEAGUE.standings && leagueData.standings.length) return;
+    try {
+      const d = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=standings').then(r => r.json());
+      if (d.success && d.standings && d.standings.length) leagueData.standings = d.standings;
+    } catch(e) { console.warn('standings fallback failed', e); }
   }
 
   // ── Data loading (non-live fallback only) ─────────────────────
@@ -787,16 +794,18 @@
     if (cached) {
       // Instant render from cache
       _applyBoot(cached);
+      await _ensureStandings();
       _render();
       // Revalidate in background
-      _fetchBoot().then(d => {
-        if (d.success) { _cacheSave(d); _applyBoot(d); _render(); }
+      _fetchBoot().then(async d => {
+        if (d.success) { _cacheSave(d); _applyBoot(d); await _ensureStandings(); _render(); }
       }).catch(() => {});
     } else {
       try {
         const d = await _fetchBoot();
         if (d.success) { _cacheSave(d); _applyBoot(d); }
       } catch(e) { console.warn('boot failed', e); }
+      await _ensureStandings();
       _render();
     }
   }
