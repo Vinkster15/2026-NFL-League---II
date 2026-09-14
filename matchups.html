@@ -910,6 +910,15 @@
     renderMatchups();
   }
 
+  // ── Fallback: fetch matchups directly if bootstrap didn't include them ──
+  async function _ensureMatchups() {
+    if (window._matchups.length > 0) return; // already have them
+    try {
+      const d = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=matchups').then(r => r.json());
+      if (d.success && d.matchups) window._matchups = d.matchups;
+    } catch(e) { console.warn('matchups fallback failed', e); }
+  }
+
   // ── Boot ───────────────────────────────────────────────────────
   async function boot() {
     if (!isLive()) { await loadClaims(); populateWeekFilter(); renderMatchups(); return; }
@@ -921,6 +930,7 @@
     if (cached) {
       // Render immediately from cache (instant)
       _applyBoot(cached);
+      await _ensureMatchups();
       populateWeekFilter();
       await Promise.all(group.weeks.map(w => loadLineups(w)));
       renderMatchups();
@@ -934,6 +944,7 @@
         const d = await _fetchBoot(week);
         if (d.success) { _cacheSave(d); _applyBoot(d); }
       } catch(e) { console.warn('boot fetch failed', e); }
+      await _ensureMatchups();
       populateWeekFilter();
       await Promise.all(group.weeks.map(w => loadLineups(w)));
       renderMatchups();
