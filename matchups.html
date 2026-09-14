@@ -475,7 +475,7 @@
   <h2 class="block-heading">Weekly Matchups</h2>
 
   <div class="matchups-controls">
-    <select id="matchups-week-filter" onchange="renderMatchups()">
+    <select id="matchups-week-filter" onchange="onWeekChange()">
       <option value="">Loading…</option>
     </select>
   </div>
@@ -594,7 +594,7 @@
   let standings = [];
   window._claimUsernames = {};
   window._matchups = [];
-  window._lineups  = {}; // { teamId: { dkUser, players:[{pos,name,pts}], totalPoints } }
+  window._lineups  = {}; // { week: { teamId: { dkUser, players:[{pos,name,pts}], totalPoints } } }
 
   function allTeamsClaimed() {
     return Object.keys(claimedTeams).length >= MOCK_LEAGUE.teams.length;
@@ -731,10 +731,11 @@
     sel.value = (target >= 0 && target < WEEK_GROUPS.length) ? target : 0;
   }
 
-  function buildLineupSideHTML(teamName, isHome) {
+  function buildLineupSideHTML(teamName, isHome, week) {
     const team    = MOCK_LEAGUE.teams.find(t => t.name === teamName);
     const teamId  = team ? team.id : null;
-    const lineup  = teamId ? window._lineups[teamId] : null;
+    const weekLineups = window._lineups[week] || {};
+    const lineup  = teamId ? weekLineups[teamId] : null;
     const abbr    = TEAM_ABBR[teamName] || teamName;
     const dk      = allTeamsClaimed() ? getPlayerForTeam(teamName) : null;
 
@@ -874,8 +875,8 @@
         detailTr.innerHTML = `
           <td colspan="3">
             <div class="lineup-panel">
-              ${buildLineupSideHTML(m.awayTeam, false)}
-              ${buildLineupSideHTML(m.homeTeam, true)}
+              ${buildLineupSideHTML(m.awayTeam, false, m.week)}
+              ${buildLineupSideHTML(m.homeTeam, true, m.week)}
             </div>
           </td>
         `;
@@ -898,13 +899,21 @@
 
   async function loadLineups(week) {
     if (!isLive()) return;
+    if (window._lineups[week]) return; // already cached
     try {
       const res  = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=lineups&week=' + week);
       const data = await res.json();
-      if (data.success && data.lineups) window._lineups = data.lineups;
+      if (data.success && data.lineups) window._lineups[week] = data.lineups;
     } catch (err) {
       console.warn('loadLineups failed', err);
     }
+  }
+
+  async function onWeekChange() {
+    const sel   = document.getElementById('matchups-week-filter');
+    const group = WEEK_GROUPS[Number(sel.value)] || WEEK_GROUPS[0];
+    await Promise.all(group.weeks.map(w => loadLineups(w)));
+    renderMatchups();
   }
 
   // ── Boot ───────────────────────────────────────────────────────
@@ -916,8 +925,9 @@
     populateWeekFilter();
     renderMatchups();
 
-    // Load lineups for the current week after rendering so cards populate
-    await loadLineups(getCurrentWeek());
+    // Load lineups for current week group, then re-render so cards populate
+    const bootGroup = WEEK_GROUPS[getCurrentWeekGroup()] || WEEK_GROUPS[0];
+    await Promise.all(bootGroup.weeks.map(w => loadLineups(w)));
     renderMatchups();
   }
 
