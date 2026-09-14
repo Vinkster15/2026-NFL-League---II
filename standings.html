@@ -404,31 +404,12 @@
     <button class="view-tab" onclick="switchView('league', this)">League</button>
     <button class="view-tab" onclick="switchView('conference', this)">Conference</button>
     <button class="view-tab active" onclick="switchView('division', this)">Division</button>
-    <button class="view-tab" onclick="switchView('playoff', this)">Playoff</button>
-    <button class="view-tab" onclick="switchView('points', this)">Points</button>
   </div>
 
   <div class="standings-grid" id="standings-grid">
     <p style="color:var(--muted);font-family:var(--font-mono);font-size:13px">Loading standings…</p>
   </div>
 
-  <div id="points-view" style="display:none">
-    <div class="points-table-wrap">
-      <table class="points-table">
-        <thead><tr>
-          <th>#</th>
-          <th>Player / Team</th>
-          <th style="text-align:right">Total Pts</th>
-          <th style="text-align:right">Avg/Wk</th>
-          <th style="text-align:right">Best Wk</th>
-          <th style="text-align:right">Wks</th>
-        </tr></thead>
-        <tbody id="points-tbody">
-          <tr><td colspan="6" class="pts-empty">Season stats appear after Week 1 is finalized.</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 </section>
 
 <footer>
@@ -538,7 +519,6 @@
   // ── Runtime state ──────────────────────────────────────────────
   let leagueData       = null;
   let claimedTeams     = {};
-  let seasonStats      = [];
   let allMatchups      = [];
   window._claimUsernames = {};
 
@@ -569,13 +549,6 @@
       if (d.success) { claimedTeams = d.claims||{}; window._claimUsernames = d.usernames||{}; }
     } catch(e) { console.warn('loadClaims',e); }
   }
-  async function loadSeasonStats() {
-    if (!isLive()) return [];
-    try {
-      const d = await fetch(GOOGLE_SHEETS_CONFIG.APPS_SCRIPT_URL + '?action=seasonstats').then(r=>r.json());
-      return d.success && d.seasonStats ? d.seasonStats : [];
-    } catch(e) { return []; }
-  }
   async function loadMatchupsData() {
     if (!isLive()) return [];
     try {
@@ -590,32 +563,6 @@
       if (d.success && d.standings && d.standings.length) return d.standings;
     } catch(e) { console.warn('loadStandings',e); }
     return MOCK_LEAGUE.standings;
-  }
-
-  function renderPointsLeaderboard() {
-    const tbody = document.getElementById('points-tbody');
-    if (!tbody) return;
-    if (!seasonStats || !seasonStats.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="pts-empty">Season stats appear after Week 1 is finalized.</td></tr>';
-      return;
-    }
-    const agg = {};
-    seasonStats.forEach(r => {
-      if (!agg[r.teamId]) agg[r.teamId] = { teamId:r.teamId, teamName:r.teamName, total:0, best:0, weeks:0 };
-      agg[r.teamId].total += r.points;
-      agg[r.teamId].best   = Math.max(agg[r.teamId].best, r.points);
-      agg[r.teamId].weeks++;
-    });
-    tbody.innerHTML = Object.values(agg).sort((a,b)=>b.total-a.total).map((r,i) => {
-      const abbr = TEAM_ABBR[r.teamName]||r.teamName;
-      const dk   = window._claimUsernames && window._claimUsernames[r.teamId];
-      const avg  = r.weeks ? (r.total/r.weeks).toFixed(1) : '0.0';
-      const name = dk ? `<span class="pts-user">${escHtml(dk)}</span><span class="pts-abbr">${abbr}</span>`
-                      : `<span style="color:var(--text-dim)">${abbr}</span>`;
-      return `<tr><td><span class="pts-rank">${i+1}</span></td><td>${name}</td>
-        <td class="pts-total">${r.total.toFixed(1)}</td><td>${avg}</td>
-        <td>${r.best.toFixed(1)}</td><td>${r.weeks}</td></tr>`;
-    }).join('');
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -686,20 +633,27 @@
 
   function _cmp(a, b, sMap, matchups, nbm, sameDivision) {
     const sa = sMap[a.id]||{}, sb = sMap[b.id]||{};
-    const d1 = _pct(sb.wins,sb.losses) - _pct(sa.wins,sa.losses);
-    if (Math.abs(d1) > 1e-9) return d1>0?1:-1;
+    // 1. Overall record: more wins first, then fewer losses
+    if ((sa.wins|0) !== (sb.wins|0)) return (sb.wins|0) - (sa.wins|0);
+    if ((sa.losses|0) !== (sb.losses|0)) return (sa.losses|0) - (sb.losses|0);
+    // 2. H2H
     const {aW,bW} = _h2h(a.id, b.id, matchups, nbm);
     if (aW!==bW) return aW>bW?-1:1;
     if (sameDivision) {
-      const d3 = _pct(sb.divWins,sb.divLosses) - _pct(sa.divWins,sa.divLosses);
-      if (Math.abs(d3) > 1e-9) return d3>0?1:-1;
+      // 3. Division record: more div wins first, then fewer div losses
+      if ((sa.divWins|0) !== (sb.divWins|0)) return (sb.divWins|0) - (sa.divWins|0);
+      if ((sa.divLosses|0) !== (sb.divLosses|0)) return (sa.divLosses|0) - (sb.divLosses|0);
+      // 4. Common opponents
       const {pctA,pctB,hasCommon} = _commonOppPct(a.id, b.id, matchups, nbm);
       if (hasCommon && Math.abs(pctA-pctB) > 1e-9) return pctB>pctA?1:-1;
     }
-    const d5 = _pct(sb.confWins,sb.confLosses) - _pct(sa.confWins,sa.confLosses);
-    if (Math.abs(d5) > 1e-9) return d5>0?1:-1;
+    // 5. Conference record: more conf wins first, then fewer conf losses
+    if ((sa.confWins|0) !== (sb.confWins|0)) return (sb.confWins|0) - (sa.confWins|0);
+    if ((sa.confLosses|0) !== (sb.confLosses|0)) return (sa.confLosses|0) - (sb.confLosses|0);
+    // 6. Points scored
     const d6 = (sb.pointsFor||0) - (sa.pointsFor||0);
     if (Math.abs(d6) > 0.001) return d6>0?1:-1;
+    // 7. Net points
     const netA = (sa.pointsFor||0)-(sa.pointsAgainst||0);
     const netB = (sb.pointsFor||0)-(sb.pointsAgainst||0);
     return netB>netA?1:(netA>netB?-1:0);
@@ -731,54 +685,6 @@
     };
   }
 
-  function renderPlayoffView(sMap, matchups, nbm) {
-    const grid = document.getElementById('standings-grid');
-    grid.innerHTML = '';
-    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(420px, 1fr))';
-    grid.style.maxWidth = ''; grid.style.margin = '';
-
-    for (const conf of MOCK_LEAGUE.conferences) {
-      const {seeds, out} = _playoffSeeds(conf.id, sMap, matchups, nbm);
-      const cc = confClass(conf.id);
-
-      const makeRow = (t, rank, dimmed, sepBefore, sepColor) => {
-        const s = sMap[t.id]||{};
-        const played = (s.wins|0)+(s.losses|0);
-        const p = played ? ((s.wins|0)/played).toFixed(3).replace(/^0/,'') : '.000';
-        const abbr = TEAM_ABBR[t.name]||t.name;
-        const dk   = window._claimUsernames && window._claimUsernames[t.id];
-        const nm   = dk ? `${abbr}&nbsp;<span style="color:#e8a020;font-size:10px">${escHtml(dk)}</span>` : abbr;
-        const badge = t.type==='div'
-          ? `<span style="font-size:9px;background:rgba(46,204,113,.18);color:var(--green);border-radius:3px;padding:1px 5px;margin-left:4px">DIV</span>`
-          : `<span style="font-size:9px;background:rgba(232,160,32,.18);color:#e8a020;border-radius:3px;padding:1px 5px;margin-left:4px">WC</span>`;
-        const sep = sepBefore
-          ? `<tr><td colspan="6" style="padding:0;height:2px;background:linear-gradient(to right,${sepColor},transparent)"></td></tr>`
-          : '';
-        return `${sep}<tr style="${dimmed?'opacity:.5':''}">
-          <td><span class="rank-num">${rank}</span>${nm}${t.type?badge:''}</td>
-          <td>${s.wins|0}-${s.losses|0}</td><td class="win-pct">${p}</td>
-          <td>${s.divWins|0}-${s.divLosses|0}</td>
-          <td>${(s.pointsFor||0).toFixed(1)}</td><td>${(s.pointsAgainst||0).toFixed(1)}</td>
-        </tr>`;
-      };
-
-      const rows = [
-        ...seeds.map(t => makeRow(t, t.seed, false, t.seed===5, 'rgba(46,204,113,.7)')),
-        ...out.map((t,i) => makeRow(t, i+8, true, i===0, 'rgba(231,76,60,.7)')),
-      ].join('');
-
-      const card = document.createElement('div');
-      card.className = 'standings-card';
-      card.innerHTML = `
-        <div class="standings-card-header ${cc}">${conf.name} Playoff Picture</div>
-        <table class="standings-table">
-          <thead><tr><th>Team</th><th>W-L</th><th>PCT</th><th>DIV</th><th>PF</th><th>PA</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
-      grid.appendChild(card);
-    }
-  }
-
   // ── Current view ───────────────────────────────────────────────
   let currentView = 'division';
 
@@ -786,11 +692,7 @@
     currentView = view;
     document.querySelectorAll('.view-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    const isPoints = view === 'points';
-    document.getElementById('standings-grid').style.display = isPoints ? 'none' : '';
-    document.getElementById('points-view').style.display    = isPoints ? ''     : 'none';
-    if (isPoints) renderPointsLeaderboard();
-    else          renderStandings(leagueData.standings);
+    renderStandings(leagueData.standings);
   }
 
   function confClass(confId) { return confId==='afc'?'conf-afc':'conf-nfc'; }
@@ -808,7 +710,6 @@
         <td><span class="rank-num">${i+1}</span>${disp}</td>
         <td>${s.wins|0}-${s.losses|0}</td><td class="win-pct">${p}</td>
         <td>${s.divWins|0}-${s.divLosses|0}</td><td>${s.confWins|0}-${s.confLosses|0}</td>
-        <td>${(s.pointsFor||0).toFixed(1)}</td>
       </tr>`;
     }).join('');
     const card = document.createElement('div');
@@ -816,7 +717,7 @@
     card.innerHTML = `
       <div class="standings-card-header ${confId?confClass(confId):''}">${headerText}</div>
       <table class="standings-table">
-        <thead><tr><th>Team</th><th>W-L</th><th>PCT</th><th>DIV</th><th>CONF</th><th>PF</th></tr></thead>
+        <thead><tr><th>Team</th><th>W-L</th><th>PCT</th><th>DIV</th><th>CONF</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
     return card;
@@ -863,19 +764,16 @@
           _sortDiv(divTeams, sMap, allMatchups, nbm), standings, conf.id));
       }
 
-    } else if (currentView === 'playoff') {
-      renderPlayoffView(sMap, allMatchups, nbm);
     }
   }
 
   async function boot() {
     leagueData = MOCK_LEAGUE;
     await loadClaims();
-    const [standings, stats, matchups] = await Promise.all([
-      loadStandings(), loadSeasonStats(), loadMatchupsData()
+    const [standings, matchups] = await Promise.all([
+      loadStandings(), loadMatchupsData()
     ]);
     leagueData.standings = standings;
-    seasonStats = stats;
     allMatchups = matchups;
 
     currentView = 'division';
