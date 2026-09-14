@@ -935,8 +935,8 @@
       await Promise.all(group.weeks.map(w => loadLineups(w)));
       renderMatchups();
       // Revalidate in background
-      _fetchBoot(week).then(d => {
-        if (d.success) { _cacheSave(d); _applyBoot(d); renderMatchups(); }
+      _fetchBoot(week).then(async d => {
+        if (d.success) { _cacheSave(d); _applyBoot(d); await _ensureMatchups(); renderMatchups(); }
       }).catch(() => {});
     } else {
       // No cache: one request for everything
