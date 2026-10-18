@@ -402,14 +402,58 @@
     }
     footer a { color: var(--muted); text-decoration: underline; }
   
+    /* ── Matchup of the Week & Divisional banners ── */
+    .motw-label-row td {
+      padding: 8px 14px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #0a0800;
+      background: #e8a020;
+      border-top: none;
+      border-left: 4px solid #c47010;
+      border-right: 4px solid #c47010;
+    }
+    .motw-row td {
+      background: rgba(232,160,32,.10);
+      border-bottom: 1px solid rgba(232,160,32,.3);
+    }
+    .motw-row td:first-child { border-left: 4px solid #e8a020; }
+    .motw-row td:last-child  { border-right: 4px solid #e8a020; }
+    .motw-detail-row td:first-child { border-left: 4px solid #e8a020; }
+    .motw-detail-row td:last-child  { border-right: 4px solid #e8a020; }
+    .motw-detail-row td { border-bottom: 4px solid #e8a020; }
+    .motw-row:hover td { background: rgba(232,160,32,.16) !important; }
+
+    .div-label-row td {
+      padding: 6px 12px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #60a5fa;
+      background: rgba(96,165,250,.06);
+      border-top: 1px solid rgba(96,165,250,.25);
+    }
+    .div-row td {
+      background: rgba(96,165,250,.03);
+    }
+    .div-row:hover td { background: rgba(96,165,250,.08) !important; }
+
     /* ── Bye week box ── */
     .bye-box {
       max-width: 780px;
-      margin: 12px auto 0;
+      margin: 28px auto 0;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 14px 16px;
+      padding: 16px 16px;
+    }
+    .bye-week-section + .bye-week-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
     .bye-box-header {
       font-size: 10px;
@@ -673,6 +717,41 @@
     return (window._claimUsernames && window._claimUsernames[team.id]) || null;
   }
 
+  function getDivForTeam(teamName) {
+    const t = MOCK_LEAGUE.teams.find(t => t.name === teamName);
+    return t ? t.divId : null;
+  }
+
+  function getWinsForTeam(teamName) {
+    const t = MOCK_LEAGUE.teams.find(x => x.name === teamName);
+    if (!t) return 0;
+    const s = standings.find(x => x.teamId === t.id);
+    return s ? (Number(s.wins) || 0) : 0;
+  }
+
+  function computeMatchupFlags(weekMatchups) {
+    const divKeys = new Set();
+    const scored = weekMatchups.map(m => {
+      const hw    = getWinsForTeam(m.homeTeam);
+      const aw    = getWinsForTeam(m.awayTeam);
+      const total = hw + aw;
+      const diff  = Math.abs(hw - aw);
+      const key   = m.homeTeam + '|' + m.awayTeam;
+      if (getDivForTeam(m.homeTeam) && getDivForTeam(m.homeTeam) === getDivForTeam(m.awayTeam)) {
+        divKeys.add(key);
+      }
+      return { key, score: total * 2 - diff };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    const motwKey = scored.length > 0 ? scored[0].key : null;
+
+    // Remove MOTW from divisional set so it only shows one banner
+    divKeys.delete(motwKey);
+
+    return { motwKey, divKeys };
+  }
+
   // Returns the current GFL week number (not raw NFL week).
   // The formula advances by 1 each Wednesday, but double-matchup weeks
   // (5&6, 7&8, 9&10, 15&16, 17&18) each share one NFL Sunday so GFL weeks jump by 2.
@@ -792,7 +871,7 @@
           : `<div class="bye-pill"><span class="bye-abbr">${abbr}</span></div>`;
       }).join('');
       const header = group.weeks.length > 1 ? `Week ${w} Byes` : 'Bye Week';
-      sections.push(`<div class="bye-box-header">${header}</div><div class="bye-pills">${pillsHTML}</div>`);
+      sections.push(`<div class="bye-week-section"><div class="bye-box-header">${header}</div><div class="bye-pills">${pillsHTML}</div></div>`);
     });
     if (sections.length === 0) { byeBox.style.display = 'none'; return; }
     byeBox.innerHTML = sections.join('');
@@ -824,12 +903,29 @@
 
       // Week sub-header for combined groups (e.g. Weeks 5 & 6)
       if (group.weeks.length > 1) {
+        const isFirst = w === group.weeks[0];
+        // Spacer row between weeks
+        if (!isFirst) {
+          const spacerTr = document.createElement('tr');
+          spacerTr.innerHTML = `<td colspan="3" style="height:48px;background:var(--bg);border-top:2px solid var(--border2);border-bottom:none;padding:0;"></td>`;
+          tbody.appendChild(spacerTr);
+        }
         const headerTr = document.createElement('tr');
-        headerTr.innerHTML = `<td colspan="3" style="padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)">Week ${w}</td>`;
+        headerTr.innerHTML = `<td colspan="3" style="padding:12px 14px 8px;font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;border-bottom:2px solid var(--accent);background:var(--surface2);">Week ${w}</td>`;
         tbody.appendChild(headerTr);
       }
 
-      weekMatchups.forEach(m => {
+      const { motwKey, divKeys } = computeMatchupFlags(weekMatchups);
+
+      // Sort: MOTW first → regular → divisional last
+      const sortedMatchups = [...weekMatchups].sort((a, b) => {
+        const aKey = a.homeTeam + '|' + a.awayTeam;
+        const bKey = b.homeTeam + '|' + b.awayTeam;
+        const rank = k => k === motwKey ? 0 : divKeys.has(k) ? 2 : 1;
+        return rank(aKey) - rank(bKey);
+      });
+
+      sortedMatchups.forEach(m => {
         const idx      = globalIdx++;
         const played   = m.homeScore !== null && m.awayScore !== null;
         const homeWins = played && m.homeScore > m.awayScore;
@@ -850,9 +946,31 @@
           ? `<span style="color:${awayWins ? 'var(--green)' : 'var(--muted)'}">${Number(m.awayScore).toFixed(2)}</span><span class="score-sep">–</span><span style="color:${homeWins ? 'var(--green)' : 'var(--muted)'}">${Number(m.homeScore).toFixed(2)}</span><span class="chevron">▾</span>`
           : `<span class="vs-label">VS</span><span class="chevron">▾</span>`;
 
+        const mKey = m.homeTeam + '|' + m.awayTeam;
+        const isMotw = motwKey === mKey;
+        const isDiv  = divKeys.has(mKey);
+        const isFirstDiv = isDiv && sortedMatchups.filter(x => divKeys.has(x.homeTeam+'|'+x.awayTeam))[0] === m;
+
+        if (isMotw) {
+          const labelTr = document.createElement('tr');
+          labelTr.className = 'motw-label-row';
+          labelTr.innerHTML = `<td colspan="3" style="border-left:4px solid #c47010;border-right:4px solid #c47010;">⭐&nbsp;&nbsp;Matchup of the Week</td>`;
+          tbody.appendChild(labelTr);
+        } else if (isDiv) {
+          if (isFirstDiv) {
+            const divSpacer = document.createElement('tr');
+            divSpacer.innerHTML = `<td colspan="3" style="height:20px;background:var(--bg);border-top:1px solid var(--border);padding:0;"></td>`;
+            tbody.appendChild(divSpacer);
+          }
+          const labelTr = document.createElement('tr');
+          labelTr.className = 'div-label-row';
+          labelTr.innerHTML = `<td colspan="3">● Divisional Matchup</td>`;
+          tbody.appendChild(labelTr);
+        }
+
         // Main matchup row
         const tr = document.createElement('tr');
-        tr.className = 'matchup-row';
+        tr.className = 'matchup-row' + (isMotw ? ' motw-row' : isDiv ? ' div-row' : '');
         tr.id = 'matchup-row-' + idx;
         tr.setAttribute('onclick', 'toggleLineup(' + idx + ')');
         tr.innerHTML = `
@@ -864,7 +982,7 @@
 
         // Expandable lineup detail row
         const detailTr = document.createElement('tr');
-        detailTr.className = 'lineup-detail-row';
+        detailTr.className = 'lineup-detail-row' + (isMotw ? ' motw-detail-row' : '');
         detailTr.id = 'lineup-row-' + idx;
         detailTr.innerHTML = `
           <td colspan="3">
