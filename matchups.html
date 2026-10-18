@@ -673,16 +673,19 @@
     return (window._claimUsernames && window._claimUsernames[team.id]) || null;
   }
 
-  // Week 1 Thursday = Sept 10, 2026. Each week runs Thu→Wed, switching the next Thursday.
+  // Returns the current GFL week number (not raw NFL week).
+  // The formula advances by 1 each Wednesday, but double-matchup weeks
+  // (5&6, 7&8, 9&10, 15&16, 17&18) each share one NFL Sunday so GFL weeks jump by 2.
+  //   Formula:  1  2  3  4  5  6  7  8  9  10  11  12  13
+  //   GFL Week: 1  2  3  4  5  7  9  11 12  13  14  15  17
   function getCurrentWeek() {
-    // Switches to the next week every Wednesday.
-    // Week 1 → Week 2 on Wed Sept 16, Week 3 on Wed Sept 23, etc.
     const FIRST_SWITCH = new Date(2026, 8, 16); // Wed Sept 16, 2026
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (today < FIRST_SWITCH) return 1;
-    const weeksElapsed = Math.floor((today - FIRST_SWITCH) / (1000 * 60 * 60 * 24 * 7));
-    return Math.min(weeksElapsed + 2, 18);
+    const f = Math.min(Math.floor((today - FIRST_SWITCH) / (1000 * 60 * 60 * 24 * 7)) + 2, 13);
+    const GFL = {1:1, 2:2, 3:3, 4:4, 5:5, 6:7, 7:9, 8:11, 9:12, 10:13, 11:14, 12:15, 13:17};
+    return GFL[f] || f;
   }
 
   // Combined week groups for the dropdown (weeks 5&6, 7&8, 9&10, 15&16, 17&18 share a slate)
